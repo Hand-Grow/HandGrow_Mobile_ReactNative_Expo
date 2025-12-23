@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "main" ]; then
+  echo "🛑 STOP, you are commit on branch 'main'!"
+  echo "Please create new branch (git checkout -b feature/...)."
+  exit 1
+fi
+
+npx lint-staged

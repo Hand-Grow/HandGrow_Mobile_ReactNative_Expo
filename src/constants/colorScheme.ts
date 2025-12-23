@@ -1,0 +1,1 @@
+//This foler contain const.
