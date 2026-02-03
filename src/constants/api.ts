@@ -6,3 +6,9 @@ export const AUTH_API = {
   REFRESH_TOKEN: `${API_V1}/auth/refresh`,
   LOGOUT: `${API_V1}/auth/logout`,
 };
+
+export const USER_API = {
+  GET_PROFILE: `${API_V1}/user/profile`,
+  UPDATE_LOCATION: `${API_V1}/user/location`,
+  GET_SEARCH: `${API_V1}/cooperatives/search`,
+};

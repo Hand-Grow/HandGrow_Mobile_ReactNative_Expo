@@ -20,6 +20,5 @@ export async function login(data: LoginDto): Promise<LoginResponse> {
   const { accessToken, refreshToken, expiresIn } = res.data;
 
   await saveSession(accessToken, expiresIn);
-  console.log("SESSION SAVED:", { accessToken, refreshToken, expiresIn });
   return res.data;
 }
