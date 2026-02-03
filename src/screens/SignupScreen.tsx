@@ -30,6 +30,7 @@ export default function SignupScreen() {
       phoneNumber: "",
       password: "",
       confirmPassword: "",
+      produce: "RICE",
       agree: false,
     },
   });
