@@ -1,4 +1,5 @@
-import { USER_API } from "../constants";
+import axios from "axios";
+import { ADDRESS_API, USER_API } from "../constants";
 import apiClient from "./apiClient";
 
 export const searchCooperatives = async (
@@ -20,3 +21,7 @@ export const searchCooperatives = async (
     throw error;
   }
 };
+
+export const getaddressAPI = axios.create({
+  baseURL: ADDRESS_API.BASE_ADDRESS_API,
+});

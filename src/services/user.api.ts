@@ -1,5 +1,5 @@
 import apiClient from "./apiClient";
-import { User, UserLocation } from "../type/auth.type";
+import { User } from "../type/auth.type";
 import { USER_API } from "../constants";
 
 export const getUserProfile = async (): Promise<User> => {

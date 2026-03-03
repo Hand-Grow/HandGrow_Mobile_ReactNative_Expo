@@ -1,37 +1,39 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { HStack, Text, VStack } from "@gluestack-ui/themed";
+import { ArrowLeft, MapPin, Search } from "lucide-react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   SafeAreaView,
   ScrollView,
-  View,
   TextInput,
-  ActivityIndicator,
   TouchableOpacity,
+  View,
 } from "react-native";
-import axios from "axios";
-import { Text, HStack, VStack } from "@gluestack-ui/themed";
-import { ArrowLeft, Search, MapPin } from "lucide-react-native";
 
-import { useUserStore } from "../store/user.store";
 import { HTXCard } from "../components/common/HTXCard";
-import { searchCooperatives } from "../services/search.api";
-import { getMyRequestsByStatus } from "../services/joinHTX.api"; // Import thêm API lọc
+import { HTXFilter } from "../components/common/HTXFillter";
 import { LocationPicker } from "../components/common/LocationPicker";
-import { PRODUCE_LABELS } from "../constants/enums/produce.enum";
-import { HTXFilter } from "../components/common/HTXFillter"; // Sửa lỗi chính tả Fillter -> Filter nếu cần
 import { JoinRequestStatus } from "../constants/enums/joinRequest";
-
-const addressApi = axios.create({
-  baseURL: "https://provinces.open-api.vn/api/v2",
-});
+import { PRODUCE_LABELS } from "../constants/enums/produce.enum";
+import { getMyRequestsByStatus } from "../services/joinHTX.api";
+import { getaddressAPI, searchCooperatives } from "../services/search.api";
+import { useUserStore } from "../store/user.store";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/AppNavigator";
 
 const HTXDiscoveryScreen = () => {
   const { user, updateProfile, joinRequests, fetchMyRequests } = useUserStore();
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+  const navigation = useNavigation<NavigationProp>();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
 
   const [htxList, setHtxList] = useState<any[]>([]);
   const [allHTXs, setAllHTXs] = useState<any[]>([]);
   const [isFetchingHtx, setIsFetchingHtx] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>(["not_joined"]);
 
   const [provinces, setProvinces] = useState<any[]>([]);
   const [wards, setWards] = useState<any[]>([]);
@@ -46,6 +48,12 @@ const HTXDiscoveryScreen = () => {
     fetchMyRequests();
   }, []);
 
+  useEffect(() => {
+    if (activeFilters.length === 0) {
+      setHtxList(allHTXs);
+    }
+  }, [allHTXs, activeFilters]);
+
   const handleSearchHTX = useCallback(
     async (commune: string, province: string, produce: string) => {
       if (!commune || !province) return;
@@ -56,12 +64,14 @@ const HTXDiscoveryScreen = () => {
         const cleanProvince = province.trim().normalize("NFC");
 
         let cleanProduce: string | undefined = undefined;
-        const searchText = produce.trim().toLowerCase();
+        let searchText = produce.trim().toLowerCase();
+        searchText = removeAccents(searchText);
 
         if (searchText) {
-          const entry = Object.entries(PRODUCE_LABELS).find(([key, label]) =>
-            label.toLowerCase().includes(searchText),
-          );
+          const entry = Object.entries(PRODUCE_LABELS).find(([key, label]) => {
+            const labelNorm = removeAccents(label.toLowerCase());
+            return labelNorm.includes(searchText);
+          });
           cleanProduce = entry ? entry[0] : undefined;
         }
 
@@ -71,15 +81,42 @@ const HTXDiscoveryScreen = () => {
           cleanProduce,
         );
 
-        const enrichedData = (Array.isArray(data) ? data : []).map((item) => ({
-          ...item,
-          status:
-            joinRequests.find((r: any) => r.cooperativeId === item.id)
-              ?.status || JoinRequestStatus.NOT_JOINED,
-        }));
+        const extractCoopId = (r: any) =>
+          r.cooperative?.id ?? r.cooperativeId ?? r.id ?? "";
+        const enrichedData = (Array.isArray(data) ? data : []).map((item) => {
+          const byId = joinRequests.find(
+            (r: any) => String(extractCoopId(r)) === String(item.id),
+          );
+
+          const itemName = (item.name || item.cooperativeName || "").toString();
+          const byName =
+            !byId && itemName
+              ? joinRequests.find((r: any) => {
+                  const rName = (
+                    r.cooperative?.name ||
+                    r.cooperativeName ||
+                    r.name ||
+                    ""
+                  ).toString();
+                  return (
+                    rName && removeAccents(rName) === removeAccents(itemName)
+                  );
+                })
+              : undefined;
+
+          const req = byId || byName;
+          return {
+            ...item,
+            status: req?.status || JoinRequestStatus.NOT_JOINED,
+          };
+        });
 
         setAllHTXs(enrichedData);
-        setHtxList(enrichedData);
+        if (activeFilters.length > 0) {
+          handleFilterChange(activeFilters);
+        } else {
+          setHtxList(enrichedData);
+        }
       } catch (err) {
         console.error("Lỗi tải HTX:", err);
         setHtxList([]);
@@ -87,49 +124,113 @@ const HTXDiscoveryScreen = () => {
         setIsFetchingHtx(false);
       }
     },
-    [joinRequests],
+    [joinRequests, activeFilters],
   );
 
-  const handleFilterChange = async (filters: string[]) => {
-    if (filters.length === 0) {
-      setHtxList(allHTXs);
-      return;
-    }
+  const handleFilterChange = useCallback(
+    async (filters: string[]) => {
+      setActiveFilters(filters);
 
-    setIsFetchingHtx(true);
-    try {
-      let results: any[] = [];
-
-      if (filters.includes("pending") || filters.includes("joined")) {
-        const statusToFetch = filters.includes("pending")
-          ? "PENDING"
-          : "APPROVED";
-        const data = await getMyRequestsByStatus(statusToFetch);
-
-        const mapped = (data || []).map((req: any) => ({
-          ...req,
-          id: req.cooperativeId || req.id,
-          name: req.cooperativeName,
-          status: req.status || statusToFetch,
-        }));
-        results = [...results, ...mapped];
+      if (filters.length === 0) {
+        if (user?.commune && user?.province) {
+          handleSearchHTX(user.commune, user.province, submittedQuery);
+        }
+        return;
       }
 
-      if (filters.includes("not_joined")) {
-        const notJoined = allHTXs.filter(
-          (htx) => !joinRequests.some((r: any) => r.cooperativeId === htx.id),
+      setIsFetchingHtx(true);
+      try {
+        let results: any[] = [];
+
+        if (filters.includes("pending") || filters.includes("joined")) {
+          const statusesToFetch: string[] = [];
+          if (filters.includes("pending")) statusesToFetch.push("PENDING");
+          if (filters.includes("joined")) statusesToFetch.push("APPROVED");
+
+          for (const statusToFetch of statusesToFetch) {
+            const data = await getMyRequestsByStatus(statusToFetch);
+            const mapped = (data || []).map((req: any) => {
+              let coopId = req.cooperativeId || req.id;
+              let original = coopId
+                ? allHTXs.find((h) => String(h.id) === String(coopId))
+                : undefined;
+
+              if (!original) {
+                const reqName = (
+                  req.cooperativeName ||
+                  req.name ||
+                  ""
+                ).toString();
+                if (reqName) {
+                  const normalize = (s: string) =>
+                    s
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toLowerCase();
+                  const reqNorm = normalize(reqName);
+                  original = allHTXs.find(
+                    (h) => normalize(h.name || "") === reqNorm,
+                  );
+                  if (original && !coopId) coopId = original.id;
+                }
+              }
+
+              return {
+                ...(original || {}),
+                ...req,
+                id: coopId || req.cooperativeName || req.id,
+                name: req.cooperativeName || original?.name || req.name,
+                address: req.cooperativeAddress || original?.address,
+                produce: req.cooperativeProduce || original?.produce,
+                status: req.status || statusToFetch,
+              };
+            });
+            results = [...results, ...mapped];
+          }
+        }
+
+        if (filters.includes("not_joined")) {
+          const extractCoopId = (r: any) =>
+            r.cooperative?.id ?? r.cooperativeId ?? r.id ?? "";
+
+          const excludedIds = new Set<string>();
+          const excludedNames = new Set<string>();
+
+          for (const r of joinRequests) {
+            const id = extractCoopId(r);
+            if (id) excludedIds.add(String(id));
+
+            const name = (
+              r.cooperative?.name ||
+              r.cooperativeName ||
+              r.name ||
+              ""
+            ).toString();
+            if (name) excludedNames.add(removeAccents(name));
+          }
+
+          const notJoined = allHTXs.filter((htx) => {
+            if (excludedIds.has(String(htx.id))) return false;
+
+            const htxNameNorm = removeAccents(htx.name || "");
+            if (htxNameNorm && excludedNames.has(htxNameNorm)) return false;
+
+            return true;
+          });
+
+          results = [...results, ...notJoined];
+        }
+
+        const final = Array.from(
+          new Map(results.map((item) => [item.id, item])).values(),
         );
-        results = [...results, ...notJoined];
+        setHtxList(final);
+      } finally {
+        setIsFetchingHtx(false);
       }
-
-      const final = Array.from(
-        new Map(results.map((item) => [item.id, item])).values(),
-      );
-      setHtxList(final);
-    } finally {
-      setIsFetchingHtx(false);
-    }
-  };
+    },
+    [allHTXs, joinRequests],
+  );
 
   useEffect(() => {
     if (user?.commune && user?.province) {
@@ -138,7 +239,13 @@ const HTXDiscoveryScreen = () => {
   }, [user?.commune, user?.province, submittedQuery, joinRequests]);
 
   useEffect(() => {
-    addressApi.get("/p/").then((res) => setProvinces(res.data));
+    if (activeFilters.length > 0 && allHTXs.length > 0) {
+      handleFilterChange(activeFilters);
+    }
+  }, [allHTXs]);
+
+  useEffect(() => {
+    getaddressAPI.get("/p/").then((res) => setProvinces(res.data));
   }, []);
 
   const onSelectProvince = async (province: any) => {
@@ -146,7 +253,7 @@ const HTXDiscoveryScreen = () => {
     setTempW(null);
     setIsLoadingAddr(true);
     try {
-      const { data } = await addressApi.get(`/p/${province.code}?depth=2`);
+      const { data } = await getaddressAPI.get(`/p/${province.code}?depth=2`);
       setWards(data.wards || []);
       setFormStep("w");
     } finally {
@@ -191,6 +298,10 @@ const HTXDiscoveryScreen = () => {
     );
   }
 
+  const navigateBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView
@@ -199,7 +310,7 @@ const HTXDiscoveryScreen = () => {
       >
         <View className="bg-primary pt-6 pb-8 px-5 rounded-b-[30px] shadow-md">
           <HStack className="flex-row items-center mb-5">
-            <ArrowLeft color="white" />
+            <ArrowLeft color="white" onPress={navigateBack} />
             <VStack className="ml-3 flex-1">
               <Text className="text-white font-bold text-lg uppercase">
                 HTX gần bạn
@@ -212,7 +323,7 @@ const HTXDiscoveryScreen = () => {
                 <HStack className="flex-row items-center">
                   <MapPin size={12} color="#D1FAE5" />
                   <Text className="text-emerald-100 text-md italic ml-1 underline">
-                    {`${user.commune}, ${user.province}`} (Đổi)
+                    {`${user.commune}, ${user.province}`}
                   </Text>
                 </HStack>
               </TouchableOpacity>
@@ -234,7 +345,10 @@ const HTXDiscoveryScreen = () => {
           <Text className="text-gray-500 font-medium">
             Tìm thấy {htxList.length} HTX
           </Text>
-          <HTXFilter onFilterChange={handleFilterChange} />
+          <HTXFilter
+            onFilterChange={handleFilterChange}
+            selectedValues={activeFilters}
+          />
         </View>
 
         <View className="p-1">
@@ -258,7 +372,6 @@ const HTXDiscoveryScreen = () => {
   );
 };
 
-// Helper function moved outside
 const removeAccents = (str: string) => {
   return str
     .normalize("NFD")

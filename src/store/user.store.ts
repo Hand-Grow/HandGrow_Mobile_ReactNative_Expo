@@ -1,12 +1,13 @@
 import { create } from "zustand";
-import { User } from "../type/auth.type";
-import { putUserLocation } from "../services/user.api";
+import { JoinRequestStatus } from "../constants/enums/joinRequest";
 import { getMyJoinRequests } from "../services/joinHTX.api";
+import { putUserLocation } from "../services/user.api";
+import { User } from "../type/auth.type";
 
 interface UserState {
   user: User | null;
   profiles: { farmer: User | null; coop: User | null; enterprise: User | null };
-  joinRequests: any[]; // Danh sách yêu cầu đã gửi
+  joinRequests: any[];
   fetchMyRequests: () => Promise<void>;
   updateJoinRequestLocal: (newRequest: any) => void;
   updateProfile: (updatedUser: User) => Promise<void>;
@@ -21,16 +22,45 @@ export const useUserStore = create<UserState>((set) => ({
   fetchMyRequests: async () => {
     try {
       const data = await getMyJoinRequests();
-      set({ joinRequests: Array.isArray(data) ? data : [] });
+      const raw = Array.isArray(data) ? data : data?.data || [];
+      const normalized = raw.map((req: any) => {
+        const idVal = req.cooperative?.id ?? req.cooperativeId ?? req.id ?? "";
+        return {
+          ...req,
+          cooperativeId: idVal ? String(idVal) : undefined,
+          cooperativeName:
+            req.cooperative?.name ?? req.cooperativeName ?? undefined,
+          status: req.status || JoinRequestStatus.PENDING,
+        };
+      });
+      console.log("Fetched and normalized join requests:", normalized);
+      set({ joinRequests: normalized });
     } catch (error) {
       set({ joinRequests: [] });
     }
   },
 
   updateJoinRequestLocal: (newRequest) => {
-    set((state) => ({
-      joinRequests: [newRequest, ...state.joinRequests],
-    }));
+    const rawId =
+      newRequest.cooperative?.id ||
+      newRequest.cooperativeId ||
+      newRequest.id ||
+      "";
+
+    const normalized = {
+      ...newRequest,
+      cooperativeId: String(rawId),
+      status: newRequest.status || JoinRequestStatus.PENDING,
+    };
+
+    set((state) => {
+      const filtered = state.joinRequests.filter((r: any) => {
+        const existingId = String(r.cooperativeId || "");
+        return existingId !== normalized.cooperativeId;
+      });
+
+      return { joinRequests: [normalized, ...filtered] };
+    });
   },
   setProfileData: (role, data) =>
     set((state) => ({

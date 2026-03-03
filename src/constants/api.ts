@@ -12,3 +12,13 @@ export const USER_API = {
   UPDATE_LOCATION: `${API_V1}/user/location`,
   GET_SEARCH: `${API_V1}/cooperatives/search`,
 };
+export const ADDRESS_API = {
+  BASE_ADDRESS_API: `https://provinces.open-api.vn/api/v2`,
+};
+
+export const JOIN_API = {
+  BASE: `${API_V1}/join-requests`,
+  MY_REQUESTS: `${API_V1}/join-requests/my-requests`,
+  STATUS: (status: string) =>
+    `${API_V1}/join-requests/my-requests/status/${status}`,
+};

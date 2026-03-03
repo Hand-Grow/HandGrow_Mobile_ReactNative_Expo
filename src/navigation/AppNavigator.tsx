@@ -32,6 +32,16 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+const HomeStack = createNativeStackNavigator();
+
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      {/* <HomeStack.Screen name="Detail" component={DetailScreen} options={{ title: "Chi tiết" }} /> */}
+    </HomeStack.Navigator>
+  );
+}
 
 function TabNavigator() {
   return (
@@ -43,7 +53,7 @@ function TabNavigator() {
     >
       <Tab.Screen
         name="HomeTab"
-        component={HomeScreen}
+        component={HomeStackNavigator}
         options={{
           title: "Trang chủ",
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
@@ -108,7 +118,7 @@ export default function AppNavigator() {
       <Stack.Screen
         name="Detail"
         component={DetailScreen}
-        options={{ headerShown: true, title: "Chi tiết" }}
+        options={{ headerShown: false, title: "Chi tiết" }}
       />
     </Stack.Navigator>
   );

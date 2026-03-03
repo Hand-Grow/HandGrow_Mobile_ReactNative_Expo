@@ -1,30 +1,45 @@
-import React, { useState } from "react";
-import { Text, View, ActivityIndicator, Alert } from "react-native";
-import {
-  Box,
-  HStack,
-  VStack,
-  Badge,
-  BadgeText,
-  Button,
-} from "@gluestack-ui/themed";
-import { AppImage } from "./AppImage";
-import { joinCooperative } from "../../services/joinHTX.api";
 import {
   JOIN_REQUEST_COLORS,
   JOIN_REQUEST_LABELS,
   JoinRequestStatus,
 } from "@/src/constants/enums/joinRequest";
-import { useUserStore } from "@/src/store/user.store";
 import { PRODUCE_LABELS } from "@/src/constants/enums/produce.enum";
+import { useUserStore } from "@/src/store/user.store";
+import {
+  Badge,
+  BadgeText,
+  Box,
+  Button,
+  HStack,
+  VStack,
+} from "@gluestack-ui/themed";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
+import { ActivityIndicator, Alert, Text, View } from "react-native";
+import { joinCooperative } from "../../services/joinHTX.api";
+import { AppImage } from "./AppImage";
 
 export const HTXCard = ({ item }: { item: any }) => {
   const [loading, setLoading] = useState(false);
-  const { updateJoinRequestLocal } = useUserStore();
+  const [optimisticStatus, setOptimisticStatus] = useState<string | undefined>(
+    undefined,
+  );
+  const { joinRequests, updateJoinRequestLocal, fetchMyRequests } =
+    useUserStore();
 
   const renderLocation = (data: any) => {
     if (!data) return "";
     return typeof data === "object" ? data.name : data;
+  };
+
+  const navigation = useNavigation<any>();
+
+  const handleChat = () => {
+    navigation.navigate("Detail", { coopId: item.id, screen: "Chat" });
+  };
+
+  const handleViewPosts = () => {
+    navigation.navigate("Detail", { coopId: item.id, screen: "Posts" });
   };
 
   const handleJoin = async () => {
@@ -33,7 +48,10 @@ export const HTXCard = ({ item }: { item: any }) => {
     try {
       const response = await joinCooperative(item.id);
       if (response?.data) {
-        updateJoinRequestLocal(response.data);
+        const respData = { ...response.data, cooperativeId: item.id };
+        updateJoinRequestLocal(respData);
+        fetchMyRequests();
+        setOptimisticStatus(respData.status || JoinRequestStatus.PENDING);
       }
       Alert.alert("Thành công", `Lily đã gửi yêu cầu tham gia ${item.name}!`);
     } catch (error: any) {
@@ -47,11 +65,43 @@ export const HTXCard = ({ item }: { item: any }) => {
       PRODUCE_LABELS[key as keyof typeof PRODUCE_LABELS] || key || "Nông sản"
     );
   };
+
+  const extractCoopId = (r: any) =>
+    r.cooperative?.id ?? r.cooperativeId ?? r.id ?? "";
+
+  const matchedRequest = joinRequests.find((r: any) => {
+    return String(extractCoopId(r)) === String(item.id);
+  });
   const currentStatus =
-    (item.status as JoinRequestStatus) || JoinRequestStatus.NOT_JOINED;
-  // console.log(item.status);
-  const theme = JOIN_REQUEST_COLORS[currentStatus];
-  const label = JOIN_REQUEST_LABELS[currentStatus];
+    (optimisticStatus as JoinRequestStatus) ||
+    (matchedRequest?.status as JoinRequestStatus) ||
+    (item.status as JoinRequestStatus) ||
+    JoinRequestStatus.NOT_JOINED;
+
+  const theme = JOIN_REQUEST_COLORS[currentStatus as JoinRequestStatus];
+  const label = JOIN_REQUEST_LABELS[currentStatus as JoinRequestStatus];
+
+  // determine primary and secondary button behavior
+  let primaryLabel = label;
+  let primaryDisabled =
+    currentStatus !== JoinRequestStatus.NOT_JOINED || loading;
+  let primaryOnPress = handleJoin;
+
+  if (currentStatus === JoinRequestStatus.PENDING) {
+    primaryLabel = JOIN_REQUEST_LABELS[JoinRequestStatus.PENDING];
+    primaryDisabled = true;
+  } else if (currentStatus === JoinRequestStatus.APPROVED) {
+    primaryLabel = JOIN_REQUEST_LABELS[JoinRequestStatus.APPROVED];
+    primaryDisabled = true;
+  }
+
+  let secondaryLabel = "Nhắn tin";
+  let secondaryOnPress = handleChat;
+
+  if (currentStatus === JoinRequestStatus.APPROVED) {
+    secondaryLabel = "Xem";
+    secondaryOnPress = handleViewPosts;
+  }
 
   return (
     <Box className="bg-white m-4 p-4 rounded-2xl shadow-sm border border-gray-200">
@@ -96,17 +146,20 @@ export const HTXCard = ({ item }: { item: any }) => {
         <HStack gap={12} className="flex-row mt-4">
           <Button
             className={`flex-1 ${theme.bg} h-12 rounded-xl justify-center items-center shadow-sm`}
-            onPress={handleJoin}
-            disabled={currentStatus !== JoinRequestStatus.NOT_JOINED || loading}
+            onPress={primaryOnPress}
+            disabled={primaryDisabled}
           >
-            {loading ? (
+            {loading && currentStatus === JoinRequestStatus.NOT_JOINED ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className={`${theme.text} font-bold`}>{label}</Text>
+              <Text className={`${theme.text} font-bold`}>{primaryLabel}</Text>
             )}
           </Button>
-          <Button className="flex-1 bg-gray-100 h-12 rounded-xl justify-center items-center">
-            <Text className="text-gray-700 font-bold">Xem</Text>
+          <Button
+            className="flex-1 bg-gray-100 h-12 rounded-xl justify-center items-center"
+            onPress={secondaryOnPress}
+          >
+            <Text className="text-gray-700 font-bold">{secondaryLabel}</Text>
           </Button>
         </HStack>
       </VStack>

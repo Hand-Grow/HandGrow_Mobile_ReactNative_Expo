@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { Box, HStack, Text } from "@gluestack-ui/themed";
+import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
-import { HStack, Box, Text } from "@gluestack-ui/themed";
 
 const FILTER_OPTIONS = [
   { id: "joined", label: "Đã tham gia" },
@@ -10,19 +10,30 @@ const FILTER_OPTIONS = [
 
 export const HTXFilter = ({
   onFilterChange,
+  selectedValues,
 }: {
   onFilterChange: (filters: string[]) => void;
+  selectedValues?: string[];
 }) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [localSelected, setLocalSelected] = useState<string[]>(
+    selectedValues ?? [],
+  );
+
+  useEffect(() => {
+    if (selectedValues) setLocalSelected(selectedValues);
+  }, [selectedValues]);
 
   const toggleFilter = (id: string) => {
-    const newValues = selectedValues.includes(id)
-      ? selectedValues.filter((v) => v !== id)
-      : [...selectedValues, id];
+    const source = selectedValues ?? localSelected;
+    const newValues = source.includes(id)
+      ? source.filter((v) => v !== id)
+      : [...source, id];
 
-    setSelectedValues(newValues);
+    if (!selectedValues) setLocalSelected(newValues);
     onFilterChange(newValues);
   };
+
+  const current = selectedValues ?? localSelected;
 
   return (
     <Box className="py-2">
@@ -32,7 +43,7 @@ export const HTXFilter = ({
         contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
       >
         {FILTER_OPTIONS.map((option) => {
-          const isSelected = selectedValues.includes(option.id);
+          const isSelected = current.includes(option.id);
           return (
             <TouchableOpacity
               key={option.id}
