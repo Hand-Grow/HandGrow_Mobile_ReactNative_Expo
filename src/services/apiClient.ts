@@ -6,11 +6,14 @@ const apiClient = axios.create({
 });
 console.log("API:", process.env.EXPO_PUBLIC_API_BASE_URL);
 
-// apiClient.interceptors.request.use((config) => {
-//   const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-//   if (accessToken && config.headers) {
-//     config.headers.Authorization = `Bearer ${accessToken}`;
-//   }
-//   return config;
-// });
+import { getSession } from "./storage";
+
+apiClient.interceptors.request.use(async (config) => {
+  const session = await getSession();
+  if (session?.token && config.headers) {
+    config.headers.Authorization = `Bearer ${session.token}`;
+  }
+  return config;
+});
+
 export default apiClient;
