@@ -2,9 +2,8 @@
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer } from "@react-navigation/native";
 import { ActivityIndicator, View } from "react-native";
-import { Home, User, Settings } from "lucide-react-native"; // Icon minh họa
+import { Home, User } from "lucide-react-native"; // Icon minh họa
 
 import HomeScreen from "../screens/HomeScreen";
 import DetailScreen from "../screens/DetailScreen";
@@ -14,10 +13,12 @@ import SignupScreen from "../screens/SignupScreen";
 import { useAuthStore } from "../store/auth.store";
 import { CustomDrawer } from "../components/common/Sidebar";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import HTXDiscoveryScreen from "../screens/HTXDiscoveryScreen";
 
 export type TabParamList = {
   HomeTab: undefined;
   Profile: undefined;
+  HTXDiscovery: undefined;
 };
 
 export type RootStackParamList = {
@@ -25,11 +26,22 @@ export type RootStackParamList = {
   MainDrawer: undefined;
   SignUp: undefined;
   Login: undefined;
+  HTXDiscovery: undefined;
   Detail: { id: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+const HomeStack = createNativeStackNavigator();
+
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      {/* <HomeStack.Screen name="Detail" component={DetailScreen} options={{ title: "Chi tiết" }} /> */}
+    </HomeStack.Navigator>
+  );
+}
 
 function TabNavigator() {
   return (
@@ -41,20 +53,20 @@ function TabNavigator() {
     >
       <Tab.Screen
         name="HomeTab"
-        component={HomeScreen}
+        component={HomeStackNavigator}
         options={{
           title: "Trang chủ",
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
       />
-      {/* <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
+      <Tab.Screen
+        name="HTXDiscovery"
+        component={HTXDiscoveryScreen}
         options={{
-          title: "Cá nhân",
+          title: "Tìm HTX",
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
-      /> */}
+      />
     </Tab.Navigator>
   );
 }
@@ -86,29 +98,28 @@ export default function AppNavigator() {
   if (isBootstrapping) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#10B981" />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isAuthenticated ? (
+        <>
           <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="SignUp" component={SignupScreen} />
-          </>
-        )}
-
-        <Stack.Screen
-          name="Detail"
-          component={DetailScreen}
-          options={{ headerShown: true, title: "Chi tiết" }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignupScreen} />
+        </>
+      )}
+      <Stack.Screen
+        name="Detail"
+        component={DetailScreen}
+        options={{ headerShown: false, title: "Chi tiết" }}
+      />
+    </Stack.Navigator>
   );
 }

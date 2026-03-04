@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import {
   Home,
@@ -13,14 +13,19 @@ import { VStack, HStack, Divider } from "@gluestack-ui/themed";
 import { useAuthStore } from "../../store/auth.store";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppImage } from "./AppImage";
+import { useUserStore } from "@/src/store/user.store";
+import { useUserActions } from "@/src/hook/useProfile";
 
 export function CustomDrawer(props: any) {
   const { logout } = useAuthStore();
-  const user = {
-    fullName: "Y Xa Bế",
-    address: "An Hai - Da Nang",
-    avatar: "https://i.pravatar.cc/150?img=1",
-  };
+  const farmer = useUserStore((state: any) => state.profiles.farmer);
+  const { fetchProfile } = useUserActions();
+
+  useEffect(() => {
+    if (!farmer) {
+      fetchProfile("farmer");
+    }
+  }, []);
 
   const menuItems = [
     { label: "Trang chủ", icon: Home, target: "HomeTab", active: true },
@@ -29,7 +34,7 @@ export function CustomDrawer(props: any) {
     {
       label: "Hợp tác xã gần đây",
       icon: MapPin,
-      target: "Cooperative",
+      target: "HTXDiscovery",
       active: false,
     },
     {
@@ -45,9 +50,9 @@ export function CustomDrawer(props: any) {
       <View className="p-6 flex-1">
         <HStack gap={12} alignItems="center" className="mb-8 mt-4">
           <View className="w-14 h-14 bg-orange-100 rounded-full items-center justify-center border border-orange-200">
-            {user.avatar ? (
+            {farmer?.avatarUrl ? (
               <AppImage
-                source={{ uri: user.avatar }}
+                source={{ uri: farmer?.avatarUrl }}
                 className="w-14 h-14 rounded-full"
               />
             ) : (
@@ -56,10 +61,11 @@ export function CustomDrawer(props: any) {
           </View>
           <VStack>
             <Text className="text-lg font-bold text-slate-900">
-              {user?.fullName ?? "Y Xa Bế"}
+              {farmer?.fullName ?? "Không Xác Định"}
             </Text>
             <Text className="text-gray-500 text-xs">
-              Nông dân - {user?.address ?? "Da Nang"}
+              Nông dân - {farmer?.commune ?? "Không Xác Định"} ,{" "}
+              {farmer?.province ?? "Không Xác Định"}
             </Text>
           </VStack>
         </HStack>
