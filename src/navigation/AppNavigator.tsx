@@ -9,6 +9,8 @@ import HomeScreen from "../screens/HomeScreen";
 import DetailScreen from "../screens/DetailScreen";
 import LoginScreen from "../screens/LoginScreen";
 import SignupScreen from "../screens/SignupScreen";
+import VoiceDiaryScreen from "../screens/VoiceDiaryScreen";
+import PlotListScreen from "../screens/PlotListScreen";
 // import ProfileScreen from "../screens/ProfileScreen"; // Screen mới
 import { useAuthStore } from "../store/auth.store";
 import { CustomDrawer } from "../components/common/Sidebar";
@@ -28,6 +30,8 @@ export type RootStackParamList = {
   Login: undefined;
   HTXDiscovery: undefined;
   Detail: { id: number };
+  Diary: { plotId: string; plotName: string };
+  PlotList: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -108,18 +112,29 @@ export default function AppNavigator() {
       {isAuthenticated ? (
         <>
           <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="SignUp" component={SignupScreen} />
-        </>
-      )}
-      <Stack.Screen
-        name="Detail"
-        component={DetailScreen}
-        options={{ headerShown: false, title: "Chi tiết" }}
-      />
-    </Stack.Navigator>
+        ) : (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignupScreen} />
+          </>
+        )}
+
+        <Stack.Screen
+          name="Detail"
+          component={DetailScreen}
+          options={{ headerShown: true, title: "Chi tiết" }}
+        />
+        <Stack.Screen
+          name="PlotList"
+          component={PlotListScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Diary"
+          component={VoiceDiaryScreen}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

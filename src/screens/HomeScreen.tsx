@@ -80,7 +80,7 @@ export default function HomeScreen() {
             label="Ghi nhật ký"
             color="#FFFF"
             bg="#f7c328"
-            onPress={() => navigation.navigate("MainTabs")}
+            onPress={() => navigation.navigate("PlotList")}
           />
           <MenuCard
             icon={MapPin}
