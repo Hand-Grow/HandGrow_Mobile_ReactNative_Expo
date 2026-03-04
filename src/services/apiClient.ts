@@ -1,18 +1,24 @@
 import axios from "axios";
+import { clearSession, getSession } from "./storage";
 
 const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
   timeout: 10000,
 });
-console.log("API:", process.env.EXPO_PUBLIC_API_BASE_URL);
-
-import { getSession } from "./storage";
 
 apiClient.interceptors.request.use(async (config) => {
   const session = await getSession();
-  if (session?.token && config.headers) {
-    config.headers.Authorization = `Bearer ${session.token}`;
+
+  if (!session) return config;
+
+  const { token, expiresAt } = session;
+
+  if (Date.now() > expiresAt) {
+    await clearSession();
+    return config;
   }
+
+  config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

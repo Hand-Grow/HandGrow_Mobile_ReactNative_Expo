@@ -2,7 +2,6 @@ import * as SecureStore from "expo-secure-store";
 import { STORAGE_KEYS } from "../constants";
 
 export const saveSession = async (accessToken: string, expiresIn: number) => {
-  // convert expiresIn (seconds) -> expiresAt (timestamp ms)
   const expiresAt = Date.now() + expiresIn * 1000;
 
   await SecureStore.setItemAsync(STORAGE_KEYS.ACCESS_TOKEN, accessToken);

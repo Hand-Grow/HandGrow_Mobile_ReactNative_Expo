@@ -40,7 +40,7 @@ export default function LoginScreen() {
       startAuthAction();
       await login(data);
       loginSuccess();
-      showSuccessToast("Đăng nhập thành công", "Chào mừng bạn quay trở lại 👋");
+      // showSuccessToast("Đăng nhập thành công", "Chào mừng bạn quay trở lại 👋");
     } catch (error) {
       handleApiError(error);
       console.log("Login error:", error);

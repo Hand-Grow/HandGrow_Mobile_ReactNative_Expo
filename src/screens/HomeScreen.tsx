@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, SafeAreaView, TouchableOpacity, View } from "react-native";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
 import {
@@ -17,10 +17,21 @@ import { WeatherAlertCarousel } from "../components/common/WeatherAlertCarousel"
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { useNavigation } from "@react-navigation/native";
+import { useUserStore } from "../store/user.store";
+import { useUserActions } from "../hook/useProfile";
 
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
+
+  const farmer = useUserStore((state: any) => state.profiles.farmer);
+  const { fetchProfile } = useUserActions();
+
+  useEffect(() => {
+    if (!farmer) {
+      fetchProfile("farmer");
+    }
+  }, []);
   return (
     <SafeAreaView className="flex-1 bg-[#F8FAFC]">
       <ScrollView showsVerticalScrollIndicator={false} className="px-5">
@@ -43,7 +54,7 @@ export default function HomeScreen() {
                 Xin chào,
               </Text>
               <Text className="text-xl font-extrabold text-slate-900 leading-6">
-                Y Xa Bế
+                {farmer?.fullName ?? "Không Xác Định"}
               </Text>
             </VStack>
           </HStack>
@@ -76,7 +87,9 @@ export default function HomeScreen() {
             label="Tìm HTX"
             color="#FFFF"
             bg="#4dae57"
-            onPress={() => {}}
+            onPress={() => {
+              navigation.navigate("HTXDiscovery");
+            }}
           />
           <MenuCard
             icon={Camera}
