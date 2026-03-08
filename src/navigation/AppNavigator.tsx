@@ -1,26 +1,28 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect } from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ActivityIndicator, View } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Home, User } from "lucide-react-native"; // Icon minh họa
+import React, { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 
-import HomeScreen from "../screens/HomeScreen";
 import DetailScreen from "../screens/DetailScreen";
+import GroupOrderScreen from "../screens/GroupOrderScreen";
+import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
+import PlotListScreen from "../screens/PlotListScreen";
 import SignupScreen from "../screens/SignupScreen";
 import VoiceDiaryScreen from "../screens/VoiceDiaryScreen";
-import PlotListScreen from "../screens/PlotListScreen";
 // import ProfileScreen from "../screens/ProfileScreen"; // Screen mới
-import { useAuthStore } from "../store/auth.store";
-import { CustomDrawer } from "../components/common/Sidebar";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import { CustomDrawer } from "../components/common/Sidebar";
 import HTXDiscoveryScreen from "../screens/HTXDiscoveryScreen";
+import { useAuthStore } from "../store/auth.store";
 
 export type TabParamList = {
   HomeTab: undefined;
   Profile: undefined;
   HTXDiscovery: undefined;
+  GroupOrder: undefined;
 };
 
 export type RootStackParamList = {
@@ -32,6 +34,7 @@ export type RootStackParamList = {
   Detail: { id: number };
   Diary: { plotId: string; plotName: string };
   PlotList: undefined;
+  GroupOrder: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -69,6 +72,13 @@ function TabNavigator() {
         options={{
           title: "Tìm HTX",
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="GroupOrder"
+        component={GroupOrderScreen}
+        options={{
+          title: "Mua chung",
         }}
       />
     </Tab.Navigator>
@@ -112,29 +122,34 @@ export default function AppNavigator() {
       {isAuthenticated ? (
         <>
           <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="SignUp" component={SignupScreen} />
-          </>
-        )}
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignupScreen} />
+        </>
+      )}
 
-        <Stack.Screen
-          name="Detail"
-          component={DetailScreen}
-          options={{ headerShown: true, title: "Chi tiết" }}
-        />
-        <Stack.Screen
-          name="PlotList"
-          component={PlotListScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Diary"
-          component={VoiceDiaryScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+      <Stack.Screen
+        name="Detail"
+        component={DetailScreen}
+        options={{ headerShown: true, title: "Chi tiết" }}
+      />
+      <Stack.Screen
+        name="PlotList"
+        component={PlotListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Diary"
+        component={VoiceDiaryScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GroupOrder"
+        component={GroupOrderScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 }

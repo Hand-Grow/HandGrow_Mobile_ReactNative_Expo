@@ -22,3 +22,10 @@ export const JOIN_API = {
   STATUS: (status: string) =>
     `${API_V1}/join-requests/my-requests/status/${status}`,
 };
+
+export const GROUP_ORDER_API = {
+  PRODUCTS: `${API_V1}/group-orders/products`,
+  PRODUCT_BY_ID: (id: string) => `${API_V1}/group-orders/products/${id}`,
+  JOIN_ORDER: `${API_V1}/group-orders/join`,
+  LEAVE_ORDER: `${API_V1}/group-orders/leave`,
+};

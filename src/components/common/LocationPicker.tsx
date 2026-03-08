@@ -1,22 +1,24 @@
-import React from "react";
 import {
-  View,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
-import {
-  Text,
-  VStack,
-  HStack,
-  Heading,
   Button,
   ButtonText,
+  Heading,
+  Text,
+  VStack,
 } from "@gluestack-ui/themed";
-import { MapPin, Search, CheckCircle2 } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { CheckCircle2, MapPin, Search } from "lucide-react-native";
+import React from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RootStackParamList } from "../../navigation/AppNavigator";
 
 interface LocationPickerProps {
   formStep: "p" | "w";
@@ -34,6 +36,8 @@ interface LocationPickerProps {
 }
 
 export const LocationPicker = (props: LocationPickerProps) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {
     formStep,
     setFormStep,
@@ -48,6 +52,10 @@ export const LocationPicker = (props: LocationPickerProps) => {
     setTempW,
     onConfirm,
   } = props;
+
+  const handleNavigateToGroupOrder = () => {
+    navigation.navigate("GroupOrder" as any);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white p-6 justify-center">
@@ -166,6 +174,16 @@ export const LocationPicker = (props: LocationPickerProps) => {
               Bắt đầu khám phá
             </ButtonText>
           )}
+        </Button>
+
+        {/* Test Button for Debug */}
+        <Button
+          className="h-14 rounded-2xl mt-2 flex-row justify-center items-center bg-blue-600"
+          onPress={handleNavigateToGroupOrder}
+        >
+          <ButtonText className="font-bold text-white text-center text-md">
+            Test: Đến trang Mua chung
+          </ButtonText>
         </Button>
       </VStack>
     </SafeAreaView>
