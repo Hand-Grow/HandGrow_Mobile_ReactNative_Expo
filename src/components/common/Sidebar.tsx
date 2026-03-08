@@ -25,7 +25,7 @@ export function CustomDrawer(props: any) {
     if (!farmer) {
       fetchProfile("farmer");
     }
-  }, []);
+  }, [fetchProfile, farmer]);
 
   const menuItems = [
     { label: "Trang chủ", icon: Home, target: "HomeTab", active: true },

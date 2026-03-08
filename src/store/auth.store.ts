@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { getSession, clearSession } from "@/src/services/storage";
+import { useUserStore } from "./user.store";
+import { QueryClient } from "@tanstack/react-query";
 
 type AuthState = {
   isAuthenticated: boolean;
@@ -15,7 +17,7 @@ type AuthState = {
   loginSuccess: () => void;
   logout: () => Promise<void>;
 };
-
+export const queryClient = new QueryClient();
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
@@ -46,6 +48,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await clearSession();
-    set({ isAuthenticated: false });
+
+    useUserStore.getState().reset(); // 🔥 reset user store
+    queryClient.clear();
+    set({
+      isAuthenticated: false,
+      isBootstrapping: false,
+      isSubmitting: false,
+    });
   },
 }));
