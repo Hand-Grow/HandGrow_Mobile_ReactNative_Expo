@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppImage } from "./AppImage";
 import { useUserStore } from "@/src/store/user.store";
 import { useUserActions } from "@/src/hook/useProfile";
+import { VersionChecker } from "./VersionChecker";
 
 export function CustomDrawer(props: any) {
   const { logout } = useAuthStore();
@@ -91,6 +92,8 @@ export function CustomDrawer(props: any) {
             </TouchableOpacity>
           ))}
         </VStack>
+
+        <VersionChecker />
 
         <TouchableOpacity
           onPress={() => logout()}
