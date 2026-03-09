@@ -5,6 +5,7 @@ import { USER_API } from "../constants";
 export const getUserProfile = async (): Promise<User> => {
   try {
     const response = await apiClient.get(USER_API.GET_PROFILE);
+    console.log("🔍 FULL API RESPONSE for User Profile:", response.data); // LOG DÒNG NÀY
     return response.data;
   } catch (error) {
     console.error("Lỗi lấy Profile:", error);

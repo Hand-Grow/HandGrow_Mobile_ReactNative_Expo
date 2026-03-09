@@ -84,7 +84,7 @@ export default function HomeScreen() {
           />
           <MenuCard
             icon={MapPin}
-            label="Tìm HTX"
+            label="Hợp tác xã"
             color="#FFFF"
             bg="#4dae57"
             onPress={() => {

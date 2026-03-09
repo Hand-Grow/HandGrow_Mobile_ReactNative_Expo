@@ -21,6 +21,7 @@ export interface UserAddress {
 }
 
 export interface User {
+  id: string;
   fullName: string;
   username: string;
   phoneNumber: string;

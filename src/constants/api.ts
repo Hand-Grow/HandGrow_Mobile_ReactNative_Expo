@@ -1,3 +1,5 @@
+import { FeedType } from "../type/forumFeed.type";
+
 const API_V1 = "/api/v1";
 
 export const AUTH_API = {
@@ -21,4 +23,22 @@ export const JOIN_API = {
   MY_REQUESTS: `${API_V1}/join-requests/my-requests`,
   STATUS: (status: string) =>
     `${API_V1}/join-requests/my-requests/status/${status}`,
+};
+
+export const FORUM_FEED_API = {
+  GET_FEED: (coopId: string) => `${API_V1}/coops/${coopId}/feed`,
+
+  TOGGLE_LIKE: (type: FeedType, id: string) =>
+    `${API_V1}/feed/${type}/${id}/likes`,
+
+  GET_COMMENTS: (type: FeedType, id: string) =>
+    `${API_V1}/feed/${type}/${id}/comments`,
+
+  POST_COMMENT: (type: FeedType, id: string) =>
+    `${API_V1}/feed/${type}/${id}/comments`,
+
+  CREATE_COMMITMENT: (campaignId: string) =>
+    `${API_V1}/campaigns/${campaignId}/commitments`,
+  GET_COMMITMENTS: (campaignId: string) =>
+    `${API_V1}/campaigns/${campaignId}/commitments`,
 };

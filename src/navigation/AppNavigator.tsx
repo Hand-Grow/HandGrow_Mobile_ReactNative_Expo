@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { ActivityIndicator, View } from "react-native";
-import { Home, User } from "lucide-react-native"; // Icon minh họa
+import { Home, Newspaper, User } from "lucide-react-native"; // Icon minh họa
 
 import HomeScreen from "../screens/HomeScreen";
 import DetailScreen from "../screens/DetailScreen";
@@ -16,22 +16,27 @@ import { useAuthStore } from "../store/auth.store";
 import { CustomDrawer } from "../components/common/Sidebar";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import HTXDiscoveryScreen from "../screens/HTXDiscoveryScreen";
+import CooperativeFeedScreen from "../screens/CooperativeFeedScreen";
+import { NavigatorScreenParams } from "@react-navigation/native";
 
 export type TabParamList = {
   HomeTab: undefined;
   Profile: undefined;
   HTXDiscovery: undefined;
+  CoopFeed: undefined;
 };
-
+export type MainDrawerParamList = {
+  MainTabs: NavigatorScreenParams<TabParamList>;
+};
 export type RootStackParamList = {
-  MainTabs: undefined;
-  MainDrawer: undefined;
+  MainDrawer: NavigatorScreenParams<MainDrawerParamList>; // ✅ đúng
   SignUp: undefined;
   Login: undefined;
   HTXDiscovery: undefined;
   Detail: { id: number };
   Diary: { plotId: string; plotName: string };
   PlotList: undefined;
+  CoopFeed: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -67,8 +72,18 @@ function TabNavigator() {
         name="HTXDiscovery"
         component={HTXDiscoveryScreen}
         options={{
-          title: "Tìm HTX",
+          title: "Hợp tác xã",
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="CoopFeed"
+        component={CooperativeFeedScreen}
+        options={{
+          title: "Bảng tin",
+          tabBarIcon: ({ color, size }) => (
+            <Newspaper color={color} size={size} />
+          ),
         }}
       />
     </Tab.Navigator>
@@ -112,29 +127,34 @@ export default function AppNavigator() {
       {isAuthenticated ? (
         <>
           <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="SignUp" component={SignupScreen} />
-          </>
-        )}
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignupScreen} />
+        </>
+      )}
 
-        <Stack.Screen
-          name="Detail"
-          component={DetailScreen}
-          options={{ headerShown: true, title: "Chi tiết" }}
-        />
-        <Stack.Screen
-          name="PlotList"
-          component={PlotListScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Diary"
-          component={VoiceDiaryScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+      <Stack.Screen
+        name="Detail"
+        component={DetailScreen}
+        options={{ headerShown: true, title: "Chi tiết" }}
+      />
+      <Stack.Screen
+        name="PlotList"
+        component={PlotListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Diary"
+        component={VoiceDiaryScreen}
+        options={{ headerShown: false }}
+      />
+      {/* <Stack.Screen
+        name="CoopFeed"
+        component={CooperativeFeedScreen}
+        options={{ headerShown: false }}
+      /> */}
+    </Stack.Navigator>
   );
 }
