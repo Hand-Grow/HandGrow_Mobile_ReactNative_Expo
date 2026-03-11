@@ -21,7 +21,7 @@ export const AnnouncementCard = ({ item }: any) => {
   return (
     <Box className="bg-white p-4 mb-4 rounded-3xl shadow-sm border border-gray-50 relative overflow-hidden">
       <Box className="absolute top-0 right-0 bg-emerald-100 px-3 py-1 rounded-bl-2xl">
-        <Text className="text-md text-emerald-700 font-bold uppercase">
+        <Text className="text-sm text-emerald-700 font-bold uppercase">
           Thông báo
         </Text>
       </Box>

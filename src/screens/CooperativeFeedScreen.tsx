@@ -126,7 +126,7 @@ const CooperativeFeedScreen = () => {
         }
         ListHeaderComponent={
           <VStack className="mb-6">
-            <Box className="bg-emerald-500 pt-14 pb-24 px-6 rounded-b-[45px]">
+            <Box className="flex-row bg-primary pt-12 pb-24 px-6 rounded-b-[30px]">
               <TouchableOpacity className="mb-4 w-10" onPress={navigateBack}>
                 <ArrowLeft color="white" size={28} />
               </TouchableOpacity>
@@ -136,7 +136,7 @@ const CooperativeFeedScreen = () => {
                   {currentCoop.cooperativeName}
                 </Text>
 
-                <Text color="white" className="opacity-90 text-sm italic">
+                <Text color="white" className="opacity-90 text-md italic">
                   {currentCoop.address || "Khu vực thành viên nội bộ"}
                 </Text>
               </View>
@@ -160,8 +160,8 @@ const CooperativeFeedScreen = () => {
               />
             </HStack>
 
-            <HStack className="flex-row px-5 mb-4 items-center justify-between">
-              <Text className="font-bold text-gray-800 text-xl">
+            <HStack className="px-5 mb-4">
+              <Text className="font-bold text-gray-800 text-lg mb-6">
                 Tin tức & Vận hành
               </Text>
 
