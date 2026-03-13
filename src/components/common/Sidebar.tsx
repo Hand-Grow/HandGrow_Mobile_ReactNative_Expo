@@ -45,6 +45,46 @@ export function CustomDrawer(props: any) {
     },
   ];
 
+  const handleNavigate = (target: string) => {
+    // Drawer content sits inside `MainDrawer` (Stack) -> `MainTabs` (Drawer) -> `TabNavigator` (Tabs).
+    // Some destinations are tabs, others are stack screens.
+    const rootNav = props.navigation.getParent?.() ?? props.navigation;
+
+    if (target === "HomeTab") {
+      props.navigation.navigate("MainTabs", { screen: "HomeTab" });
+      props.navigation.closeDrawer?.();
+      return;
+    }
+
+    if (target === "HTXDiscovery") {
+      props.navigation.navigate("MainTabs", { screen: "HTXDiscovery" });
+      props.navigation.closeDrawer?.();
+      return;
+    }
+
+    if (target === "Diary") {
+      // Diary needs plot params, so route users to the plot picker first.
+      rootNav.navigate("PlotList");
+      props.navigation.closeDrawer?.();
+      return;
+    }
+
+    if (target === "Scan") {
+      rootNav.navigate("Upcoming", { feature: "scan" });
+      props.navigation.closeDrawer?.();
+      return;
+    }
+
+    if (target === "profile") {
+      rootNav.navigate("Upcoming", { feature: "profile" });
+      props.navigation.closeDrawer?.();
+      return;
+    }
+
+    rootNav.navigate(target);
+    props.navigation.closeDrawer?.();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="p-6 flex-1">
@@ -76,7 +116,7 @@ export function CustomDrawer(props: any) {
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => props.navigation.navigate(item.target)}
+              onPress={() => handleNavigate(item.target)}
               className={`flex-row items-center p-4 rounded-2xl ${item.active ? "bg-green-50" : "bg-transparent"}`}
             >
               <item.icon

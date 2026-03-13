@@ -57,7 +57,6 @@ export const voiceDiaryApi = {
         params: { startDate, endDate },
       },
     );
-    console.log("🔍 FULL API RESPONSE for Get Diaries by Plot:", response.data); // LOG DÒNG NÀY
     return response.data;
   },
 
