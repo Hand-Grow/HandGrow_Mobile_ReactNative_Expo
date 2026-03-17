@@ -15,6 +15,7 @@ import {
   getCampaignCommitments,
 } from "@/src/services/forumFeed.api";
 import { FeedType } from "@/src/type/forumFeed.type";
+import { useUserStore } from "../store/user.store";
 
 export const useForumFeed = (
   coopId: string,
@@ -48,7 +49,6 @@ export const useForumFeed = (
       return pageNumber + 1;
     },
     enabled: !!coopId,
-    // Prevent UI flicker when queryKey changes (e.g. fallback increases `size`).
     placeholderData: (prev) => prev,
   });
 };
@@ -83,7 +83,6 @@ export const useToggleLike = () => {
           };
         };
 
-        // Infinite query shape: { pages: [{ content: [...] }, ...] }
         if (Array.isArray(old?.pages)) {
           return {
             ...old,
@@ -96,17 +95,14 @@ export const useToggleLike = () => {
           };
         }
 
-        // Single page shape: { content: [...] }
         if (Array.isArray(old?.content)) {
           return { ...old, content: old.content.map(updateItem) };
         }
 
-        // Array shape: [ ... ]
         if (Array.isArray(old)) {
           return old.map(updateItem);
         }
 
-        // Legacy shape: { data: [...] }
         if (Array.isArray(old?.data)) {
           return { ...old, data: old.data.map(updateItem) };
         }
@@ -222,10 +218,11 @@ export const useCampaignCommitments = (
   size = 10,
   sort = "createdAt,desc",
 ) => {
+  const userId = useUserStore((state) => state.user?.id);
   return useQuery({
-    queryKey: ["campaign-commitments", campaignId, page, size, sort],
+    queryKey: ["campaign-commitments", campaignId, userId, page, size, sort],
     queryFn: () => getCampaignCommitments(campaignId, page, size, sort),
-    enabled: !!campaignId,
+    enabled: !!campaignId && !!userId,
     select: (data) => data,
   });
 };

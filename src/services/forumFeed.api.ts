@@ -23,7 +23,6 @@ const normalizePageResponse = <T>(
     };
   }
 
-  // Some APIs return plain arrays.
   if (Array.isArray(payload)) {
     return {
       content: payload,
@@ -33,7 +32,6 @@ const normalizePageResponse = <T>(
     };
   }
 
-  // Common wrappers: { data: PageResponse } or { data: [...] }
   const unwrapped = payload?.data ?? payload;
 
   if (Array.isArray(unwrapped)) {
@@ -45,7 +43,6 @@ const normalizePageResponse = <T>(
     };
   }
 
-  // Spring-like: { content: [...], last, totalPages, pageable: { pageNumber } }
   if (Array.isArray(unwrapped?.content)) {
     return {
       ...unwrapped,
@@ -55,7 +52,6 @@ const normalizePageResponse = <T>(
     };
   }
 
-  // Other common keys: items/results
   const items =
     (Array.isArray(unwrapped?.items) ? unwrapped.items : undefined) ??
     (Array.isArray(unwrapped?.results) ? unwrapped.results : undefined);
