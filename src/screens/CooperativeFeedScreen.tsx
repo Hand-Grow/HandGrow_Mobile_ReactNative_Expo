@@ -68,6 +68,10 @@ const CooperativeFeedScreen = () => {
       });
   };
 
+  const navigateToGroupOrder = () => {
+    navigation.navigate("GroupOrder");
+  };
+
   const renderItem = ({ item }: { item: FeedItemDTO }) => (
     <Box className="px-4">
       {item.type === "CAMPAIGN" ? (
@@ -148,6 +152,7 @@ const CooperativeFeedScreen = () => {
               <ActionButton
                 label="Mua chung"
                 icon={<ShoppingBag size={24} color="#10b981" />}
+                onPress={navigateToGroupOrder}
               />
               <ActionButton
                 label="Thành viên"
@@ -185,11 +190,16 @@ const CooperativeFeedScreen = () => {
 const ActionButton = ({
   label,
   icon,
+  onPress,
 }: {
   label: string;
   icon: React.ReactNode;
+  onPress?: () => void;
 }) => (
-  <TouchableOpacity className="flex-1 bg-white border border-gray-200 rounded-2xl p-5 items-center shadow-sm active:opacity-70">
+  <TouchableOpacity
+    className="flex-1 bg-white border border-gray-200 rounded-2xl p-5 items-center shadow-sm active:opacity-70"
+    onPress={onPress}
+  >
     <View className="bg-emerald-100 p-3 rounded-full mb-2">{icon}</View>
     <Text className="font-bold text-gray-700">{label}</Text>
   </TouchableOpacity>
