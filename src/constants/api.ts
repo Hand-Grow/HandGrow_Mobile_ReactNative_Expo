@@ -42,3 +42,18 @@ export const FORUM_FEED_API = {
   GET_COMMITMENTS: (campaignId: string) =>
     `${API_V1}/campaigns/${campaignId}/commitments`,
 };
+
+export const GROUP_ORDER_API = {
+  CAMPAIGNS: `${API_V1}/group-buy/campaigns`,
+  CAMPAIGNS_COOPERATIVE_ME: `${API_V1}/group-buy/campaigns/cooperative/me`,
+  CAMPAIGN_BY_ID: (id: string) => `${API_V1}/group-buy/campaigns/${id}`,
+  JOIN_CAMPAIGN: (id: string) => `${API_V1}/group-buy/campaigns/${id}/join`,
+  CLOSE_CAMPAIGN: (id: string) => `${API_V1}/group-buy/campaigns/${id}/close`,
+  CAMPAIGN_PARTICIPATIONS: (id: string) =>
+    `${API_V1}/group-buy/campaigns/${id}/participations`,
+  // Legacy endpoints for backward compatibility
+  PRODUCTS: `${API_V1}/group-orders/products`,
+  PRODUCT_BY_ID: (id: string) => `${API_V1}/group-orders/products/${id}`,
+  JOIN_ORDER: `${API_V1}/group-orders/join`,
+  LEAVE_ORDER: `${API_V1}/group-orders/leave`,
+};

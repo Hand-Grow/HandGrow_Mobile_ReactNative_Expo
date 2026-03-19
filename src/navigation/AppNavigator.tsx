@@ -1,23 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect } from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ActivityIndicator, View } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Home, Newspaper, User } from "lucide-react-native"; // Icon minh họa
+import React, { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 
-import HomeScreen from "../screens/HomeScreen";
 import DetailScreen from "../screens/DetailScreen";
+import GroupOrderScreen from "../screens/GroupOrderScreen";
+import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
+import PlotListScreen from "../screens/PlotListScreen";
 import SignupScreen from "../screens/SignupScreen";
 import VoiceDiaryScreen from "../screens/VoiceDiaryScreen";
-import PlotListScreen from "../screens/PlotListScreen";
 // import ProfileScreen from "../screens/ProfileScreen"; // Screen mới
-import { useAuthStore } from "../store/auth.store";
-import { CustomDrawer } from "../components/common/Sidebar";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import HTXDiscoveryScreen from "../screens/HTXDiscoveryScreen";
-import CooperativeFeedScreen from "../screens/CooperativeFeedScreen";
 import { NavigatorScreenParams } from "@react-navigation/native";
+import { CustomDrawer } from "../components/common/Sidebar";
+import CooperativeFeedScreen from "../screens/CooperativeFeedScreen";
+import HTXDiscoveryScreen from "../screens/HTXDiscoveryScreen";
+import { useAuthStore } from "../store/auth.store";
 
 export type TabParamList = {
   HomeTab: undefined;
@@ -27,6 +28,7 @@ export type TabParamList = {
 };
 export type MainDrawerParamList = {
   MainTabs: NavigatorScreenParams<TabParamList>;
+  GroupOrder: undefined;
 };
 export type RootStackParamList = {
   MainDrawer: NavigatorScreenParams<MainDrawerParamList>; // ✅ đúng
@@ -37,6 +39,7 @@ export type RootStackParamList = {
   Diary: { plotId: string; plotName: string };
   PlotList: undefined;
   CoopFeed: undefined;
+  GroupOrder: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -150,11 +153,11 @@ export default function AppNavigator() {
         component={VoiceDiaryScreen}
         options={{ headerShown: false }}
       />
-      {/* <Stack.Screen
-        name="CoopFeed"
-        component={CooperativeFeedScreen}
+      <Stack.Screen
+        name="GroupOrder"
+        component={GroupOrderScreen}
         options={{ headerShown: false }}
-      /> */}
+      />
     </Stack.Navigator>
   );
 }
