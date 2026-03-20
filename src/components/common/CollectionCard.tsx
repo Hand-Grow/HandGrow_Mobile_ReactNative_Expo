@@ -84,7 +84,20 @@ export const CollectionCard = ({ item }: any) => {
     }
 
     const quantityNumber = Number(quantity);
-    if (isNaN(quantityNumber) || quantityNumber <= 0) {
+
+    // Check different invalid cases
+    if (isNaN(quantityNumber)) {
+      alert("Vui lòng nhập số");
+      return;
+    }
+
+    if (quantityNumber <= 0) {
+      alert("Vui lòng nhập số lớn hơn 0");
+      return;
+    }
+
+    // Check if input contains non-numeric characters
+    if (quantity !== quantityNumber.toString()) {
       alert("Vui lòng nhập số");
       return;
     }
