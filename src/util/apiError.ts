@@ -22,6 +22,12 @@ export const handleApiError = (error: unknown) => {
     case 401:
       showErrorToast("Đăng nhập thất bại", "Sai tài khoản hoặc mật khẩu");
       break;
+    case 409:
+      showErrorToast(
+        "Email đã được sử dụng",
+        "Email này đã được đăng ký. Vui lòng sử dụng email khác.",
+      );
+      break;
     case 422:
       const firstErr = data?.errors ? Object.values(data.errors)[0] : null;
       showErrorToast(
