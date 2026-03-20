@@ -48,6 +48,18 @@ function Header() {
   );
 }
 
+const getProgressColor = (progressPercent: number) => {
+  if (progressPercent === 0) {
+    return "bg-gray-300"; // Không có ai đăng ký - xám
+  } else if (progressPercent < 50) {
+    return "bg-orange-400"; // Đăng ký ít - cam
+  } else if (progressPercent < 100) {
+    return "bg-emerald-500"; // Đăng ký vừa - xanh lá
+  } else {
+    return "bg-red-500"; // Đủ/Quá - đỏ
+  }
+};
+
 function CampaignCard({
   campaign,
   onJoinCampaign,
@@ -129,13 +141,10 @@ function CampaignCard({
         </View>
         <View className="mb-2 h-2 rounded-full bg-gray-200">
           <View
-            className="h-2 rounded-full bg-emerald-500"
+            className={`h-2 rounded-full ${getProgressColor(campaign.progressPercent)}`}
             style={{ width: `${Math.min(campaign.progressPercent, 100)}%` }}
           />
         </View>
-        <Text className="text-base text-gray-500">
-          {campaign.nextTierLabel}
-        </Text>
       </View>
 
       <View className="mb-4 flex flex-row justify-between">
@@ -241,6 +250,9 @@ export default function GroupOrderScreen() {
           id: c.id,
           userParticipation: c.userParticipation,
           status: c.status,
+          progressPercent: c.progressPercent, // Save calculated progressPercent
+          totalCommittedQty: c.totalCommittedQty, // Save updated totalCommittedQty
+          participationCount: c.participationCount, // Save updated participationCount
         }));
 
       await AsyncStorage.setItem(
@@ -276,6 +288,10 @@ export default function GroupOrderScreen() {
                 savedCampaign.status === "COMPLETED"
                   ? "COMPLETED"
                   : serverCampaign.status,
+              // Prioritize saved values over server values
+              progressPercent: savedCampaign.progressPercent,
+              totalCommittedQty: savedCampaign.totalCommittedQty,
+              participationCount: savedCampaign.participationCount,
             };
           }
 
@@ -348,43 +364,109 @@ export default function GroupOrderScreen() {
     setJoiningCampaignId(selectedCampaignForJoin.id);
 
     try {
-      setCampaigns((prevCampaigns) =>
-        prevCampaigns.map((c) =>
-          c.id === selectedCampaignForJoin.id
-            ? {
-                ...c,
-                userParticipation: {
-                  id: `temp_${Date.now()}`,
-                  committedQty: qty,
-                  lockedUnitPrice: c.currentUnitPrice,
-                  totalAmount: qty * c.currentUnitPrice,
-                },
-                totalCommittedQty:
-                  c.totalCommittedQty +
-                  (c.userParticipation
-                    ? qty - c.userParticipation.committedQty
-                    : qty),
-                participationCount:
-                  c.participationCount + (c.userParticipation ? 0 : 1),
-              }
-            : c,
-        ),
+      const response = await groupOrderApi.joinCampaign(
+        selectedCampaignForJoin.id,
+        {
+          committedQty: qty,
+        },
       );
 
-      await saveParticipationState(campaigns);
+      if (response.success) {
+        if (response.campaign) {
+          const updatedCampaign = response.campaign;
+          setCampaigns((prevCampaigns) =>
+            prevCampaigns.map((c) =>
+              c.id === selectedCampaignForJoin.id ? updatedCampaign || c : c,
+            ),
+          );
+        } else {
+          setCampaigns((prevCampaigns) => {
+            const firstUpdate = prevCampaigns.map((c) =>
+              c.id === selectedCampaignForJoin.id
+                ? {
+                    ...c,
+                    userParticipation: {
+                      id: `temp_${Date.now()}`,
+                      committedQty: qty,
+                      lockedUnitPrice: c.currentUnitPrice,
+                      totalAmount: qty * c.currentUnitPrice,
+                    },
+                    totalCommittedQty:
+                      c.totalCommittedQty +
+                      (c.userParticipation
+                        ? qty - c.userParticipation.committedQty
+                        : qty),
+                    participationCount:
+                      c.participationCount + (c.userParticipation ? 0 : 1),
+                  }
+                : c,
+            );
 
-      setJoinModalVisible(false);
-      setSelectedCampaignForJoin(null);
-      setQuantity("");
+            // Calculate progressPercent after updating totalCommittedQty
+            const updatedCampaigns = firstUpdate.map((c) => {
+              if (c.id === selectedCampaignForJoin.id) {
+                // Extract target quantity from nextTierLabel if available
+                let estimatedTarget = 0;
+                const currentNextTierLabel =
+                  selectedCampaignForJoin.nextTierLabel;
+                if (
+                  currentNextTierLabel &&
+                  currentNextTierLabel.includes("Còn")
+                ) {
+                  const match =
+                    currentNextTierLabel.match(/Còn ([\d.]+) bao nữa/);
+                  if (match) {
+                    const remaining = parseFloat(match[1]);
+                    estimatedTarget = c.totalCommittedQty + remaining;
+                  }
+                } else if (
+                  currentNextTierLabel &&
+                  currentNextTierLabel.includes("Đã đạt giá sàn")
+                ) {
+                  // If already reached target price, assume current total is the target
+                  estimatedTarget = c.totalCommittedQty;
+                }
 
-      const message = selectedCampaignForJoin.userParticipation
-        ? "Cập nhật số lượng thành công!"
-        : "Tham gia chiến dịch thành công!";
+                const newProgressPercent =
+                  estimatedTarget > 0
+                    ? (c.totalCommittedQty / estimatedTarget) * 100
+                    : c.progressPercent; // Keep original if can't calculate
 
-      alert(message);
-    } catch (error) {
-      console.error("Error updating participation:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại");
+                return {
+                  ...c,
+                  progressPercent: newProgressPercent,
+                };
+              }
+              return c;
+            });
+
+            // Save the updated campaigns to AsyncStorage
+            saveParticipationState(updatedCampaigns);
+            return updatedCampaigns;
+          });
+        }
+
+        // Don't save old campaigns here, it's already saved in the else block above
+
+        setJoinModalVisible(false);
+        setSelectedCampaignForJoin(null);
+        setQuantity("");
+
+        const message = selectedCampaignForJoin.userParticipation
+          ? "Cập nhật số lượng thành công!"
+          : "Tham gia chiến dịch thành công!";
+
+        alert(message);
+      } else {
+        throw new Error(response.message || "API call failed");
+      }
+    } catch (error: any) {
+      console.error("Error joining campaign:", error);
+      alert(
+        error?.message ||
+          error?.response?.data?.message ||
+          "Có lỗi xảy ra, vui lòng thử lại",
+      );
     } finally {
       setJoiningCampaignId(null);
     }
@@ -392,22 +474,20 @@ export default function GroupOrderScreen() {
 
   const handleLeaveCampaign = async (campaignId: string) => {
     try {
-      setCampaigns((prevCampaigns) =>
-        prevCampaigns.map((c) =>
-          c.id === campaignId
-            ? {
-                ...c,
-                userParticipation: undefined,
-                totalCommittedQty:
-                  c.totalCommittedQty -
-                  (c.userParticipation?.committedQty || 0),
-                participationCount: c.participationCount - 1,
-              }
-            : c,
-        ),
+      const updatedCampaigns = campaigns.map((c) =>
+        c.id === campaignId
+          ? {
+              ...c,
+              userParticipation: undefined,
+              totalCommittedQty:
+                c.totalCommittedQty - (c.userParticipation?.committedQty || 0),
+              participationCount: c.participationCount - 1,
+            }
+          : c,
       );
 
-      await saveParticipationState(campaigns);
+      setCampaigns(updatedCampaigns);
+      await saveParticipationState(updatedCampaigns);
 
       alert("Rời chiến dịch thành công!");
     } catch (error) {
