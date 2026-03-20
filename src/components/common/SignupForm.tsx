@@ -49,7 +49,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
                   <User size={20} color="#777B84" />
                 </InputSlot>
                 <InputField
-                  placeholder="Nhập tên đăng nhập"
+                  placeholder="Nhập tên người dùng"
                   className="text-xl"
                   value={value}
                   onChangeText={onChange}
