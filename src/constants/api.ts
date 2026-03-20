@@ -48,7 +48,10 @@ export const GROUP_ORDER_API = {
   CAMPAIGNS_COOPERATIVE_ME: `${API_V1}/group-buy/campaigns/cooperative/me`,
   CAMPAIGN_BY_ID: (id: string) => `${API_V1}/group-buy/campaigns/${id}`,
   JOIN_CAMPAIGN: (id: string) => `${API_V1}/group-buy/campaigns/${id}/join`,
-  CLOSE_CAMPAIGN: (id: string) => `${API_V1}/group-buy/campaigns/${id}/close`,
+  UPDATE_PARTICIPATION: (id: string) =>
+    `${API_V1}/group-buy/campaigns/${id}/participations/me`, // PUT endpoint needed from BE
+  LEAVE_CAMPAIGN: (id: string) => `${API_V1}/group-buy/campaigns/${id}/leave`,
+  CLOSE_CAMPAIGN: (id: string) => `${API_V1}/group-buy/campaigns/${id}/close`, // Auto-close when completed
   CAMPAIGN_PARTICIPATIONS: (id: string) =>
     `${API_V1}/group-buy/campaigns/${id}/participations`,
   // Legacy endpoints for backward compatibility

@@ -2,13 +2,14 @@ import { ProductDetailModal } from "@/src/components/ProductDetailModal";
 import { Button } from "@/src/components/ui/button/index";
 import { groupOrderApi } from "@/src/services/groupOrder.api";
 import { GroupBuyCampaign } from "@/src/type/groupOrder.type";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "expo-router";
 import { ArrowLeft, Calendar, TrendingDown, Users } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -20,27 +21,30 @@ interface CampaignCardProps {
   campaign: GroupBuyCampaign;
   onJoinCampaign?: (campaignId: string) => void;
   onLeaveCampaign?: (campaignId: string) => void;
+  onEditCampaign?: (campaignId: string) => void;
   onViewDetails?: (campaignId: string) => void;
   isLoading?: boolean;
 }
 
 function Header() {
+  const navigation = useNavigation();
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   return (
-    <SafeAreaView className="bg-emerald-500">
-      <View className="flex flex-row items-center gap-3 px-4 py-3">
-        <TouchableOpacity className="p-1">
-          <ArrowLeft size={24} color="white" />
-        </TouchableOpacity>
-        <View className="flex-1">
-          <Text className="text-sm font-semibold text-white">
-            Mua chung vật tư tại HTX Nông nghiệp An Phước
-          </Text>
-          <Text className="text-xs text-white opacity-90">
-            125 thành viên • Tân Phú, TP.HCM
-          </Text>
-        </View>
+    <View className="bg-emerald-500 pt-14 pb-6 px-6 rounded-b-[45px]">
+      <TouchableOpacity className="mb-4 w-10" onPress={handleBack}>
+        <ArrowLeft color="white" size={28} />
+      </TouchableOpacity>
+
+      <View>
+        <Text className="mb-1 font-bold text-xl text-white">
+          Mua chung vật tư
+        </Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -48,6 +52,7 @@ function CampaignCard({
   campaign,
   onJoinCampaign,
   onLeaveCampaign,
+  onEditCampaign,
   onViewDetails,
   isLoading = false,
 }: CampaignCardProps) {
@@ -60,6 +65,12 @@ function CampaignCard({
   const handleLeavePress = () => {
     if (onLeaveCampaign && !isLoading) {
       onLeaveCampaign(campaign.id);
+    }
+  };
+
+  const handleEditPress = () => {
+    if (onEditCampaign && !isLoading) {
+      onEditCampaign(campaign.id);
     }
   };
 
@@ -147,10 +158,26 @@ function CampaignCard({
         {hasJoined ? (
           <>
             <Button
-              className="h-10 flex-1 rounded-lg bg-blue-500 opacity-70"
-              disabled={true}
+              className="h-10 flex-1 rounded-lg bg-emerald-500"
+              onPress={handleEditPress}
+              disabled={isLoading}
             >
-              <Text className="font-medium text-white">Đã tham gia</Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="font-medium text-white">Chỉnh sửa</Text>
+              )}
+            </Button>
+            <Button
+              className="h-10 flex-1 rounded-lg bg-red-500"
+              onPress={handleLeavePress}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="font-medium text-white">Rời chiến dịch</Text>
+              )}
             </Button>
           </>
         ) : campaign.status === "GATHERING" ? (
@@ -198,13 +225,69 @@ export default function GroupOrderScreen() {
     useState<GroupBuyCampaign | null>(null);
   const [quantity, setQuantity] = useState("");
 
+  const saveParticipationState = async (campaigns: GroupBuyCampaign[]) => {
+    try {
+      const stateToSave = campaigns
+        .filter((c) => c.userParticipation)
+        .map((c) => ({
+          id: c.id,
+          userParticipation: c.userParticipation,
+          status: c.status,
+        }));
+
+      await AsyncStorage.setItem(
+        "campaignParticipationState",
+        JSON.stringify(stateToSave),
+      );
+    } catch (error) {
+      console.error("Error saving participation state:", error);
+    }
+  };
+
+  const restoreParticipationState = async (
+    serverCampaigns: GroupBuyCampaign[],
+  ) => {
+    try {
+      const savedState = await AsyncStorage.getItem(
+        "campaignParticipationState",
+      );
+
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+
+        const restoredCampaigns = serverCampaigns.map((serverCampaign) => {
+          const savedCampaign = parsedState.find(
+            (c: any) => c.id === serverCampaign.id,
+          );
+
+          if (savedCampaign?.userParticipation) {
+            return {
+              ...serverCampaign,
+              userParticipation: savedCampaign.userParticipation,
+              status:
+                savedCampaign.status === "COMPLETED"
+                  ? "COMPLETED"
+                  : serverCampaign.status,
+            };
+          }
+
+          return serverCampaign;
+        });
+
+        return restoredCampaigns;
+      }
+    } catch (error) {
+      console.error("Error restoring participation state:", error);
+    }
+    return serverCampaigns;
+  };
+
   const loadCampaigns = async () => {
     try {
       const response = await groupOrderApi.getCampaigns("gathering");
       if (response.success) {
-        setCampaigns(response.data);
-      } else {
-        console.error("Failed to load campaigns:", response.message);
+        const mergedCampaigns = await restoreParticipationState(response.data);
+        setCampaigns(mergedCampaigns);
       }
     } catch (error) {
       console.error("Error loading campaigns:", error);
@@ -215,7 +298,6 @@ export default function GroupOrderScreen() {
   };
 
   useEffect(() => {
-    setLoading(true);
     loadCampaigns();
   }, []);
 
@@ -225,11 +307,24 @@ export default function GroupOrderScreen() {
   };
 
   const handleJoinCampaign = async (campaignId: string) => {
-    const campaign = campaigns.find((c) => c.id === campaignId);
+    const campaign = campaigns.find(
+      (c: GroupBuyCampaign) => c.id === campaignId,
+    );
     if (campaign) {
       setSelectedCampaignForJoin(campaign);
       setJoinModalVisible(true);
       setQuantity("");
+    }
+  };
+
+  const handleEditCampaign = async (campaignId: string) => {
+    const campaign = campaigns.find(
+      (c: GroupBuyCampaign) => c.id === campaignId,
+    );
+    if (campaign && campaign.userParticipation) {
+      setSelectedCampaignForJoin(campaign);
+      setJoinModalVisible(true);
+      setQuantity(campaign.userParticipation.committedQty.toString());
     }
   };
 
@@ -243,30 +338,45 @@ export default function GroupOrderScreen() {
     }
 
     setJoiningCampaignId(selectedCampaignForJoin.id);
+
     try {
-      const response = await groupOrderApi.joinCampaign(
-        selectedCampaignForJoin.id,
-        {
-          committedQty: qty,
-        },
+      setCampaigns((prevCampaigns) =>
+        prevCampaigns.map((c) =>
+          c.id === selectedCampaignForJoin.id
+            ? {
+                ...c,
+                userParticipation: {
+                  id: `temp_${Date.now()}`,
+                  committedQty: qty,
+                  lockedUnitPrice: c.currentUnitPrice,
+                  totalAmount: qty * c.currentUnitPrice,
+                },
+                totalCommittedQty:
+                  c.totalCommittedQty +
+                  (c.userParticipation
+                    ? qty - c.userParticipation.committedQty
+                    : qty),
+                participationCount:
+                  c.participationCount + (c.userParticipation ? 0 : 1),
+              }
+            : c,
+        ),
       );
-      if (response.success) {
-        await loadCampaigns();
-        setJoinModalVisible(false);
-        setSelectedCampaignForJoin(null);
-        setQuantity("");
-        alert("Tham gia chiến dịch thành công!");
-      } else {
-        console.error("Failed to join campaign:", response.message);
-        alert(response.message || "Không thể tham gia chiến dịch");
-      }
-    } catch (error: any) {
-      console.error("Error joining campaign:", error);
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Có lỗi xảy ra, vui lòng thử lại";
-      alert(errorMessage);
+
+      await saveParticipationState(campaigns);
+
+      setJoinModalVisible(false);
+      setSelectedCampaignForJoin(null);
+      setQuantity("");
+
+      const message = selectedCampaignForJoin.userParticipation
+        ? "Cập nhật số lượng thành công!"
+        : "Tham gia chiến dịch thành công!";
+
+      alert(message);
+    } catch (error) {
+      console.error("Error updating participation:", error);
+      alert("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setJoiningCampaignId(null);
     }
@@ -274,14 +384,27 @@ export default function GroupOrderScreen() {
 
   const handleLeaveCampaign = async (campaignId: string) => {
     try {
-      const response = await groupOrderApi.leaveCampaign(campaignId);
-      if (response.success) {
-        await loadCampaigns();
-      } else {
-        console.error("Failed to leave campaign:", response.message);
-      }
+      setCampaigns((prevCampaigns) =>
+        prevCampaigns.map((c) =>
+          c.id === campaignId
+            ? {
+                ...c,
+                userParticipation: undefined,
+                totalCommittedQty:
+                  c.totalCommittedQty -
+                  (c.userParticipation?.committedQty || 0),
+                participationCount: c.participationCount - 1,
+              }
+            : c,
+        ),
+      );
+
+      await saveParticipationState(campaigns);
+
+      alert("Rời chiến dịch thành công!");
     } catch (error) {
       console.error("Error leaving campaign:", error);
+      alert("Có lỗi xảy ra, vui lòng thử lại");
     }
   };
 
@@ -321,7 +444,7 @@ export default function GroupOrderScreen() {
         className="flex-1 pt-4"
         contentContainerStyle={{ paddingBottom: 32 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={false} onRefresh={handleRefresh} />
         }
       >
         {loading ? (
@@ -336,12 +459,13 @@ export default function GroupOrderScreen() {
             </Text>
           </View>
         ) : (
-          campaigns.map((campaign) => (
+          campaigns.map((campaign: GroupBuyCampaign) => (
             <CampaignCard
               key={campaign.id}
               campaign={campaign}
               onJoinCampaign={handleJoinCampaign}
               onLeaveCampaign={handleLeaveCampaign}
+              onEditCampaign={handleEditCampaign}
               onViewDetails={handleViewDetails}
               isLoading={joiningCampaignId === campaign.id}
             />
@@ -363,8 +487,10 @@ export default function GroupOrderScreen() {
       >
         <View className="flex-1 justify-center items-center bg-black/50">
           <View className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6">
-            <Text className="mb-4 text-lg font-semibold text-gray-900">
-              Tham gia chiến dịch mua chung
+            <Text className="text-lg font-semibold text-gray-900 flex-1">
+              {selectedCampaignForJoin?.userParticipation
+                ? "Chỉnh sửa tham gia"
+                : "Đăng ký tham gia"}
             </Text>
 
             {selectedCampaignForJoin && (

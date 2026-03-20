@@ -143,6 +143,87 @@ class GroupOrderApiService {
     }
   }
 
+  async updateParticipation(
+    campaignId: string,
+    request: JoinCampaignRequest,
+  ): Promise<JoinCampaignResponse> {
+    try {
+      // PUT to update existing participation (BE needs to create this endpoint)
+      const response = await apiClient.put(
+        GROUP_ORDER_API.UPDATE_PARTICIPATION(campaignId),
+        request,
+      );
+      console.log("🔍 Update participation API response:", response.data);
+
+      // Handle different response structures
+      const responseData = response.data;
+      if (responseData && typeof responseData === "object") {
+        return {
+          success: responseData.success !== false,
+          message: responseData.message || "Cập nhật tham gia thành công",
+          campaign: responseData.campaign,
+        };
+      } else {
+        // Fallback for unexpected response
+        return {
+          success: true,
+          message: "Cập nhật tham gia thành công",
+        };
+      }
+    } catch (error: any) {
+      console.error("Error updating participation:", error);
+
+      // Extract error message from response if available
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể cập nhật tham gia";
+
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    }
+  }
+
+  async closeCampaign(campaignId: string): Promise<JoinCampaignResponse> {
+    try {
+      const response = await apiClient.post(
+        GROUP_ORDER_API.CLOSE_CAMPAIGN(campaignId),
+      );
+      console.log("🔍 Close campaign API response:", response.data);
+
+      // Handle different response structures
+      const responseData = response.data;
+      if (responseData && typeof responseData === "object") {
+        return {
+          success: responseData.success !== false,
+          message: responseData.message || "Đóng chiến dịch thành công",
+          campaign: responseData.campaign,
+        };
+      } else {
+        // Fallback for unexpected response
+        return {
+          success: true,
+          message: "Đóng chiến dịch thành công",
+        };
+      }
+    } catch (error: any) {
+      console.error("Error closing campaign:", error);
+
+      // Extract error message from response if available
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể đóng chiến dịch";
+
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    }
+  }
+
   async leaveCampaign(campaignId: string): Promise<JoinCampaignResponse> {
     try {
       // Note: API doesn't have leave endpoint, this would need to be implemented
