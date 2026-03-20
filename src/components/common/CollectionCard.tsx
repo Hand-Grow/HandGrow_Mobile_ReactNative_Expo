@@ -85,7 +85,6 @@ export const CollectionCard = ({ item }: any) => {
 
     const quantityNumber = Number(quantity);
 
-    // Check different invalid cases
     if (isNaN(quantityNumber)) {
       alert("Vui lòng nhập số");
       return;
@@ -96,7 +95,6 @@ export const CollectionCard = ({ item }: any) => {
       return;
     }
 
-    // Check if input contains non-numeric characters
     if (quantity !== quantityNumber.toString()) {
       alert("Vui lòng nhập số");
       return;
