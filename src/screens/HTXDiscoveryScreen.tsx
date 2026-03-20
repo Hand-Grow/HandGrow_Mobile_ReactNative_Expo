@@ -259,7 +259,7 @@ const HTXDiscoveryScreen = () => {
           </View>
         </View>
 
-        <View className="px-5 py-3 flex-row justify-between items-center">
+        <View className="px-5 py-3 flex-col">
           <Text className="text-gray-500 font-medium">
             Tìm thấy {filteredHTXs.length} HTX
           </Text>

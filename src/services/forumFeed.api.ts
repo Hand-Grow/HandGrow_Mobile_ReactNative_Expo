@@ -149,5 +149,6 @@ export const getCampaignCommitments = async (
       params: { page, size, sort },
     },
   );
+  console.log("Fetched commitments:", data);
   return data;
 };

@@ -267,12 +267,12 @@ const CooperativeFeedScreen = () => {
                 className="mx-4 mt-6 bg-white border border-gray-200 rounded-2xl p-4 items-center shadow-sm"
               >
                 <Text className="font-bold text-gray-700">
-                  Tai them bai viet
+                  Tải thêm bài viết
                 </Text>
               </TouchableOpacity>
             ) : filteredPosts.length > 0 ? (
               <Text className="text-center text-gray-400 mt-8">
-                Het bai viet
+                Hết bài viết rồi nha...
               </Text>
             ) : null}
           </View>
