@@ -1,22 +1,21 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+import { useCampaignCommitments } from "@/src/hook/useForumFeed";
+import { useMyJoinRequests } from "@/src/hook/useMyJoinRequests";
+import { createCampaignCommitment } from "@/src/services/forumFeed.api";
+import { plotApi } from "@/src/services/plot.api";
+import { timeAgo } from "@/src/util/timeAgo";
 import { Box, Divider, HStack, Text, VStack } from "@gluestack-ui/themed";
+import { useQueryClient } from "@tanstack/react-query";
+import { UserIcon } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
-import { FeedActions } from "./FeedActions";
-import { plotApi } from "@/src/services/plot.api";
-import { createCampaignCommitment } from "@/src/services/forumFeed.api";
-import { useCampaignCommitments } from "@/src/hook/useForumFeed";
-import { useQueryClient } from "@tanstack/react-query";
 import { AppImage } from "./AppImage";
-import { UserIcon } from "lucide-react-native";
-import { timeAgo } from "@/src/util/timeAgo";
-import { useMyJoinRequests } from "@/src/hook/useMyJoinRequests";
+import { FeedActions } from "./FeedActions";
 
 export const CollectionCard = ({ item }: any) => {
   const queryClient = useQueryClient();
@@ -84,12 +83,18 @@ export const CollectionCard = ({ item }: any) => {
       return;
     }
 
+    const quantityNumber = Number(quantity);
+    if (isNaN(quantityNumber) || quantityNumber <= 0) {
+      alert("Vui lòng nhập số");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
       await createCampaignCommitment(item.id, {
         plotId: selectedField,
-        committedQuantity: Number(quantity),
+        committedQuantity: quantityNumber,
       });
 
       queryClient.invalidateQueries({
@@ -199,7 +204,7 @@ export const CollectionCard = ({ item }: any) => {
                 </Text>
 
                 <Text className="text-xl">
-                  Sản lượng: {commitment.quantity} kg
+                  Sản lượng: {Number(commitment.quantity).toLocaleString()} kg
                 </Text>
               </View>
             ) : (

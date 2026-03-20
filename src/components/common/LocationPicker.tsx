@@ -53,10 +53,6 @@ export const LocationPicker = (props: LocationPickerProps) => {
     onConfirm,
   } = props;
 
-  const handleNavigateToGroupOrder = () => {
-    navigation.navigate("GroupOrder" as any);
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-white p-6 justify-center">
       <VStack>
@@ -174,15 +170,6 @@ export const LocationPicker = (props: LocationPickerProps) => {
               Bắt đầu khám phá
             </ButtonText>
           )}
-        </Button>
-
-        <Button
-          className="h-14 rounded-2xl mt-2 flex-row justify-center items-center bg-blue-600"
-          onPress={handleNavigateToGroupOrder}
-        >
-          <ButtonText className="font-bold text-white text-center text-md">
-            Test: Đến trang Mua chung
-          </ButtonText>
         </Button>
       </VStack>
     </SafeAreaView>

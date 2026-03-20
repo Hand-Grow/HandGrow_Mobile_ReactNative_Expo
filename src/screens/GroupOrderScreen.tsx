@@ -35,14 +35,14 @@ function Header() {
 
   return (
     <View className="bg-emerald-500 pt-14 pb-6 px-6 rounded-b-[45px]">
-      <TouchableOpacity className="mb-4 w-10" onPress={handleBack}>
-        <ArrowLeft color="white" size={28} />
-      </TouchableOpacity>
-
-      <View>
-        <Text className="mb-1 font-bold text-xl text-white">
+      <View className="flex-row items-center mb-4">
+        <TouchableOpacity className="w-10" onPress={handleBack}>
+          <ArrowLeft color="white" size={28} />
+        </TouchableOpacity>
+        <Text className="flex-1 font-bold text-2xl text-white text-center">
           Mua chung vật tư
         </Text>
+        <View className="w-10" />
       </View>
     </View>
   );
@@ -88,29 +88,31 @@ function CampaignCard({
 
   return (
     <View className="mx-4 mb-4 rounded-2xl border border-gray-200 bg-white p-4">
-      <Text className="mb-2 font-semibold text-gray-900">{campaign.title}</Text>
+      <Text className="mb-2 font-semibold text-2xl text-gray-900">
+        {campaign.title}
+      </Text>
 
-      <Text className="mb-3 text-sm font-medium text-emerald-700">
+      <Text className="mb-3 text-xl font-medium text-emerald-700">
         {campaign.productName}
       </Text>
 
-      <Text className="mb-4 text-xs text-gray-600 line-clamp-2">
+      <Text className="mb-4 text-xl text-gray-600 line-clamp-2">
         {campaign.description}
       </Text>
 
       <View className="mb-3 flex flex-row items-center gap-2">
-        <Users size={14} color="#6b7280" />
-        <Text className="text-xs text-gray-500">
+        <Users size={24} color="#6b7280" />
+        <Text className="text-lg text-gray-500">
           {campaign.cooperativeName}
         </Text>
       </View>
 
       {hasJoined && (
         <View className="mb-3 rounded-lg bg-blue-50 p-3">
-          <Text className="mb-1 text-xs font-medium text-blue-800">
+          <Text className="mb-1 text-base font-medium text-blue-800">
             Bạn đã tham gia
           </Text>
-          <Text className="text-xs text-blue-600">
+          <Text className="text-base text-blue-600">
             Số lượng: {campaign.userParticipation!.committedQty} kg
           </Text>
         </View>
@@ -118,10 +120,10 @@ function CampaignCard({
 
       <View className="mb-3">
         <View className="mb-2 flex flex-row justify-between">
-          <Text className="text-xs text-gray-600">
+          <Text className="text-base text-gray-600">
             {campaign.totalCommittedQty} kg
           </Text>
-          <Text className="text-xs text-gray-600">
+          <Text className="text-base text-gray-600">
             {campaign.participationCount} người tham gia
           </Text>
         </View>
@@ -131,20 +133,20 @@ function CampaignCard({
             style={{ width: `${Math.min(campaign.progressPercent, 100)}%` }}
           />
         </View>
-        <Text className="text-xs text-gray-500">{campaign.nextTierLabel}</Text>
+        <Text className="text-base text-gray-500">
+          {campaign.nextTierLabel}
+        </Text>
       </View>
 
       <View className="mb-4 flex flex-row justify-between">
         <View>
-          <Text className="text-xs text-gray-600">Giá hiện tại</Text>
-          <Text className="text-lg font-bold text-red-600">
+          <Text className="text-3xl font-bold text-red-600">
             {campaign.currentUnitPrice.toLocaleString("vi-VN")} đ
           </Text>
-          <Text className="text-xs text-gray-600">/kg</Text>
         </View>
         <View className="flex-row items-center gap-2">
-          <Calendar size={14} color="#6b7280" />
-          <Text className="text-xs text-gray-500">
+          <Calendar size={16} color="#6b7280" />
+          <Text className="text-base text-gray-500">
             {daysLeft > 0
               ? `Còn ${daysLeft} ngày`
               : campaign.status === "CLOSED"
@@ -165,7 +167,9 @@ function CampaignCard({
               {isLoading ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text className="font-medium text-white">Chỉnh sửa</Text>
+                <Text className="font-semibold text-white text-base">
+                  Chỉnh sửa
+                </Text>
               )}
             </Button>
             <Button
@@ -176,7 +180,9 @@ function CampaignCard({
               {isLoading ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text className="font-medium text-white">Rời chiến dịch</Text>
+                <Text className="font-semibold text-white text-base">
+                  Rời chiến dịch
+                </Text>
               )}
             </Button>
           </>
@@ -190,7 +196,9 @@ function CampaignCard({
               {isLoading ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text className="font-medium text-white">Đăng ký tham gia</Text>
+                <Text className="font-semibold text-white text-base">
+                  Đăng ký tham gia
+                </Text>
               )}
             </Button>
           </>
@@ -200,7 +208,7 @@ function CampaignCard({
               className="h-10 flex-1 rounded-lg bg-gray-400 opacity-70"
               disabled={true}
             >
-              <Text className="font-medium text-white">Đã đóng</Text>
+              <Text className="font-medium text-white text-base">Đã đóng</Text>
             </Button>
           </>
         )}
@@ -430,12 +438,12 @@ export default function GroupOrderScreen() {
 
       <View className="mx-4 mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
         <View className="mb-1 flex flex-row items-center gap-2">
-          <TrendingDown size={16} color="#059669" />
-          <Text className="text-sm font-semibold text-emerald-900">
+          <TrendingDown size={18} color="#059669" />
+          <Text className="text-base font-semibold text-emerald-900">
             Tiết kiệm chi phí đến 30%
           </Text>
         </View>
-        <Text className="text-xs text-emerald-800">
+        <Text className="text-sm text-emerald-800">
           Gom đơn với các nông dân khác để được giá sỉ tốt nhất từ nhà cung cấp
         </Text>
       </View>
@@ -450,11 +458,11 @@ export default function GroupOrderScreen() {
         {loading ? (
           <View className="flex-1 items-center justify-center py-8">
             <ActivityIndicator size="large" color="#10b981" />
-            <Text className="mt-2 text-sm text-gray-600">Đang tải...</Text>
+            <Text className="mt-2 text-base text-gray-600">Đang tải...</Text>
           </View>
         ) : campaigns.length === 0 ? (
           <View className="flex-1 items-center justify-center py-8">
-            <Text className="text-sm text-gray-500">
+            <Text className="text-base text-gray-500">
               Không có chiến dịch nào
             </Text>
           </View>
@@ -495,13 +503,13 @@ export default function GroupOrderScreen() {
 
             {selectedCampaignForJoin && (
               <View className="mb-4">
-                <Text className="mb-2 text-sm font-medium text-gray-700">
+                <Text className="mb-2 text-base font-medium text-gray-700">
                   {selectedCampaignForJoin.title}
                 </Text>
-                <Text className="mb-2 text-xs text-gray-500">
+                <Text className="mb-2 text-sm text-gray-500">
                   {selectedCampaignForJoin.productName}
                 </Text>
-                <Text className="text-xs text-emerald-600">
+                <Text className="text-sm text-emerald-600">
                   Giá hiện tại:{" "}
                   {selectedCampaignForJoin.currentUnitPrice.toLocaleString(
                     "vi-VN",
@@ -512,11 +520,11 @@ export default function GroupOrderScreen() {
             )}
 
             <View className="mb-4">
-              <Text className="mb-2 text-sm font-medium text-gray-700">
+              <Text className="mb-2 text-base font-medium text-gray-700">
                 Số lượng (kg)
               </Text>
               <TextInput
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base"
                 placeholder="Nhập số lượng muốn mua"
                 value={quantity}
                 onChangeText={setQuantity}
@@ -530,7 +538,9 @@ export default function GroupOrderScreen() {
                 className="h-10 flex-1 rounded-lg"
                 onPress={handleCloseJoinModal}
               >
-                <Text className="font-medium text-gray-700">Hủy</Text>
+                <Text className="font-semibold text-gray-700 text-base">
+                  Hủy
+                </Text>
               </Button>
               <Button
                 className="h-10 flex-1 rounded-lg bg-emerald-500"
@@ -540,7 +550,9 @@ export default function GroupOrderScreen() {
                 {joiningCampaignId ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="font-medium text-white">Xác nhận</Text>
+                  <Text className="font-semibold text-white text-base">
+                    Xác nhận
+                  </Text>
                 )}
               </Button>
             </View>
