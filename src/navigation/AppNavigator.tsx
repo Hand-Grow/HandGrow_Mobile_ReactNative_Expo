@@ -20,6 +20,7 @@ import { CustomDrawer } from "../components/common/Sidebar";
 import CooperativeFeedScreen from "../screens/CooperativeFeedScreen";
 import HTXDiscoveryScreen from "../screens/HTXDiscoveryScreen";
 import { useAuthStore } from "../store/auth.store";
+import ProfileScreen from "../screens/ProfileScreen";
 
 export type TabParamList = {
   HomeTab: undefined;
@@ -41,9 +42,10 @@ export type RootStackParamList = {
   PlotList: undefined;
   CoopFeed: undefined;
   GroupOrder: undefined;
+  Profile: undefined;
   Upcoming:
     | {
-        feature?: "scan" | "profile" | "diary" | "generic";
+        feature?: "scan";
       }
     | undefined;
 };
@@ -165,10 +167,15 @@ export default function AppNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="Upcoming"
         component={UpcomingScreen}
         options={{ headerShown: false }}
-       />
+      />
     </Stack.Navigator>
   );
 }

@@ -57,6 +57,7 @@ export const voiceDiaryApi = {
         params: { startDate, endDate },
       },
     );
+    console.log("Diaries fetched for plot:", response.data);
     return response.data;
   },
 

@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Text,
   View,
 } from "react-native";
 import { AppImage } from "../components/common/AppImage";
@@ -68,20 +69,25 @@ export default function SignupScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="flex-1 bg-white">
-          <View className="mt-8 px-4">
-            <Pressable hitSlop={10} onPress={() => navigation.goBack()}>
-              <ArrowLeft size={24} color="#111" />
-            </Pressable>
-          </View>
-
           <View className="flex-1 px-6">
-            <AppImage
-              source={require("../assets/imgs/logo.png")}
-              className="w-logo h-logo self-center"
-              resizeMode="contain"
-            />
+            <View className="w-64 h-64 self-center mb-6">
+              <AppImage
+                source={require("../assets/imgs/logo.png")}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            </View>
 
             <SignupForm form={form} onSubmit={onSubmit} />
+          </View>
+          <View className="flex-row justify-center items-center pb-6 mt-6">
+            <Text className="text-lg text-gray-500">Đã có tài khoản?</Text>
+            <Pressable hitSlop={6} onPress={() => navigation.navigate("Login")}>
+              <Text className="text-lg font-semibold text-info">
+                {" "}
+                Đăng nhập
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>

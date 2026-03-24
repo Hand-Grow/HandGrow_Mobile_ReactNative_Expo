@@ -65,11 +65,13 @@ export default function LoginScreen() {
           </View>
 
           <View className="flex-1 px-6 justify-start">
-            <AppImage
-              source={require("../assets/imgs/logo.png")}
-              className="w-logo h-logo self-center"
-              resizeMode="contain"
-            />
+            <View className="w-64 h-64 self-center mb-6">
+              <AppImage
+                source={require("../assets/imgs/logo.png")}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            </View>
             <LoginForm
               form={form}
               onSubmit={(data) => form.handleSubmit(onSubmit)()}
@@ -78,14 +80,14 @@ export default function LoginScreen() {
 
           <View className="pb-6 items-center">
             <View className="flex-row">
-              <Text className="text-base text-gray-500">
+              <Text className="text-lg text-gray-500">
                 Bạn chưa có tài khoản?
               </Text>
               <Pressable
                 hitSlop={6}
                 onPress={() => navigation.navigate("SignUp")}
               >
-                <Text className="text-base font-semibold text-info">
+                <Text className="text-lg font-semibold text-info">
                   {" "}
                   Đăng ký
                 </Text>
