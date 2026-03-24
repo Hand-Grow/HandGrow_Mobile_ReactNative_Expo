@@ -96,14 +96,16 @@ export default function HomeScreen() {
             label="Quét bệnh cây"
             color="#FFFF"
             bg="#32c08a"
-            onPress={() => {}}
+            onPress={() => navigation.navigate("Upcoming", { feature: "scan" })}
           />
           <MenuCard
             icon={User}
             label="Cá nhân"
             color="#FFFF"
             bg="#846b65"
-            onPress={() => {}}
+            onPress={() =>
+              navigation.navigate("Upcoming", { feature: "profile" })
+            }
           />
         </View>
         <LinearGradient

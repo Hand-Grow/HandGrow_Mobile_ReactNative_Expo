@@ -12,6 +12,7 @@ import LoginScreen from "../screens/LoginScreen";
 import PlotListScreen from "../screens/PlotListScreen";
 import SignupScreen from "../screens/SignupScreen";
 import VoiceDiaryScreen from "../screens/VoiceDiaryScreen";
+import UpcomingScreen from "../screens/UpcomingScreen";
 // import ProfileScreen from "../screens/ProfileScreen"; // Screen mới
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { NavigatorScreenParams } from "@react-navigation/native";
@@ -40,6 +41,11 @@ export type RootStackParamList = {
   PlotList: undefined;
   CoopFeed: undefined;
   GroupOrder: undefined;
+  Upcoming:
+    | {
+        feature?: "scan" | "profile" | "diary" | "generic";
+      }
+    | undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -158,6 +164,11 @@ export default function AppNavigator() {
         component={GroupOrderScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="Upcoming"
+        component={UpcomingScreen}
+        options={{ headerShown: false }}
+       />
     </Stack.Navigator>
   );
 }

@@ -25,9 +25,8 @@ export const HTXFilter = ({
 
   const toggleFilter = (id: string) => {
     const source = selectedValues ?? localSelected;
-    const newValues = source.includes(id)
-      ? source.filter((v) => v !== id)
-      : [...source, id];
+    // Nếu id đang được chọn thì bỏ chọn tất cả, ngược lại chỉ chọn id này
+    const newValues = source.includes(id) ? [] : [id];
 
     if (!selectedValues) setLocalSelected(newValues);
     onFilterChange(newValues);
@@ -36,7 +35,7 @@ export const HTXFilter = ({
   const current = selectedValues ?? localSelected;
 
   return (
-    <Box className="py-2">
+    <Box className="py-2 mt-2">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

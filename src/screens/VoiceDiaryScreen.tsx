@@ -164,6 +164,7 @@ export default function VoiceDiaryScreen() {
 
         await voiceDiaryApi.createDiary(createReq);
         Alert.alert("Thành công", "Đã lưu nhật ký!");
+        console.log("Created diary with AI data:", createReq);
         fetchDiaries(); // Refresh list
       } else {
         Alert.alert("Lỗi", result.message || "Không thể trích xuất thông tin.");

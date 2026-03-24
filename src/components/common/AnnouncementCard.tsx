@@ -1,15 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Box, Divider, HStack, Text, VStack } from "@gluestack-ui/themed";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { FeedActions } from "./FeedActions";
 import { AppImage } from "./AppImage";
 import { UserIcon } from "lucide-react-native";
 import { timeAgo } from "@/src/util/timeAgo";
 import { useMyJoinRequests } from "@/src/hook/useMyJoinRequests";
+import { FeedImageGrid } from "./FeedGrid";
 
 export const AnnouncementCard = ({ item }: any) => {
   const [expanded, setExpanded] = React.useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [startIndex, setStartIndex] = useState(0);
   const { data: joinRequests } = useMyJoinRequests();
 
   const safeJoinRequests = joinRequests ?? [];
@@ -21,11 +26,10 @@ export const AnnouncementCard = ({ item }: any) => {
   return (
     <Box className="bg-white p-4 mb-4 rounded-3xl shadow-sm border border-gray-50 relative overflow-hidden">
       <Box className="absolute top-0 right-0 bg-emerald-100 px-3 py-1 rounded-bl-2xl">
-        <Text className="text-md text-emerald-700 font-bold uppercase">
+        <Text className="text-sm text-emerald-700 font-bold uppercase">
           Thông báo
         </Text>
       </Box>
-
       <HStack className="flex-row mb-4 mt-2">
         <View className="w-14 h-14 bg-orange-100 rounded-full items-center justify-center border border-orange-200">
           {item?.avatarUrl ? (
@@ -71,19 +75,15 @@ export const AnnouncementCard = ({ item }: any) => {
           )}
         </TouchableOpacity>
       </View>
-      {/* Image
-      {item.image && (
-        <Box className="mb-4">
-          <Image
-            source={{ uri: item.image }}
-            className="w-full h-56 rounded-2xl"
-            resizeMode="cover"
-          />
-        </Box>
-      )} */}
-
+      <FeedImageGrid
+        images={item.attachments}
+        onPressImage={(index) => {
+          setGalleryImages(item.attachments);
+          setStartIndex(index);
+          setShowGallery(true);
+        }}
+      />
       <Divider className="bg-gray-100 mb-3" />
-
       <FeedActions item={item} type="ANNOUNCEMENT" />
     </Box>
   );

@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Alert,
-  Modal,
-  TextInput,
-} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ArrowLeft, Plus, MapPin } from "lucide-react-native";
+import { ArrowLeft, MapPin, Plus } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { RootStackParamList } from "../navigation/AppNavigator";
 import { plotApi } from "../services/plot.api";
 import { PlotResponse } from "../type/plot.type";
-import { RootStackParamList } from "../navigation/AppNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -52,12 +52,34 @@ export default function PlotListScreen() {
       Alert.alert("Lỗi", "Vui lòng nhập tên ruộng");
       return;
     }
+
+    if (!plotLocation.trim()) {
+      Alert.alert("Lỗi", "Vui lòng nhập vị trí ruộng");
+      return;
+    }
+
+    if (!plotArea.trim()) {
+      Alert.alert("Lỗi", "Vui lòng nhập diện tích ruộng");
+      return;
+    }
+
+    const areaNumber = Number(plotArea);
+    if (isNaN(areaNumber) || areaNumber <= 0) {
+      Alert.alert("Lỗi", "Vui lòng nhập diện tích lớn hơn 0");
+      return;
+    }
+
+    if (areaNumber > 1000000) {
+      Alert.alert("Lỗi", "Diện tích không được quá 1,000,000 m²");
+      return;
+    }
+
     try {
       setIsCreating(true);
       const newPlot = await plotApi.createPlot({
         name: plotName,
-        location: plotLocation || "Chưa cập nhật",
-        area: Number(plotArea) || 1000,
+        location: plotLocation,
+        area: areaNumber,
         areaUnit: "m2",
       });
       setPlots((prev) => [...prev, newPlot]);

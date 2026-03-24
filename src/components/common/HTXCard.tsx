@@ -146,7 +146,7 @@ export const HTXCard = ({ item }: { item: any }) => {
             source={
               item.avatarUrl
                 ? { uri: item.avatarUrl }
-                : require("../../assets/imgs/logo-sm.png")
+                : require("../../assets/imgs/default-avatar.jpg")
             }
             className="w-12 h-12 rounded-full"
             resizeMode="contain"

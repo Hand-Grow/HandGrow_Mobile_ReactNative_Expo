@@ -39,15 +39,82 @@ const CooperativeFeedScreen = () => {
   const [selectedFilter, setSelectedFilter] = useState<
     "ALL" | "ANNOUNCEMENT" | "CAMPAIGN"
   >("ALL");
+  const [pageSize, setPageSize] = useState(10);
 
   const coopId = currentCoop?.cooperativeId;
 
   const {
-    data: feedData,
+    data: feedPages,
     isFetching,
     isLoading: loadingFeed,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
     refetch,
-  } = useForumFeed(coopId);
+  } = useForumFeed(coopId, 0, pageSize);
+
+  const feedData = useMemo(() => {
+    const pages = feedPages?.pages ?? [];
+    const seen = new Set<string>();
+    const out: FeedItemDTO[] = [];
+
+    for (const page of pages) {
+      const content: FeedItemDTO[] = Array.isArray(page?.content)
+        ? page.content
+        : [];
+
+      for (const item of content) {
+        const key = `${item?.type ?? "UNKNOWN"}:${String(item?.id ?? "")}`;
+        if (!key.endsWith(":") && !seen.has(key)) {
+          seen.add(key);
+          out.push(item);
+        }
+      }
+    }
+
+    return out;
+  }, [feedPages]);
+
+  const loadMoreSafely = async () => {
+    if (isFetchingNextPage) return;
+
+    const known = new Set(feedData.map((it) => `${it.type}:${it.id}`));
+
+    // Fallback for backends that ignore `page` but honor `size`:
+    // increase `size` to request more items from the beginning.
+    if (!hasNextPage) {
+      setPageSize((s) => Math.min(100, s + 10));
+      return;
+    }
+
+    const first = await fetchNextPage();
+
+    const lastPage = first.data?.pages?.[first.data.pages.length - 1];
+    const lastContent: FeedItemDTO[] = Array.isArray(lastPage?.content)
+      ? lastPage.content
+      : [];
+
+    const hasAnyNew = lastContent.some(
+      (it) => !known.has(`${it.type}:${it.id}`),
+    );
+
+    // If backend returns duplicate content for the first "next" page, try once more.
+    // If still no new items, fallback to increasing `size`.
+    if (!hasAnyNew && lastContent.length > 0) {
+      const second = await fetchNextPage();
+      const lastPage2 = second.data?.pages?.[second.data.pages.length - 1];
+      const lastContent2: FeedItemDTO[] = Array.isArray(lastPage2?.content)
+        ? lastPage2.content
+        : [];
+      const hasAnyNew2 = lastContent2.some(
+        (it) => !known.has(`${it.type}:${it.id}`),
+      );
+
+      if (!hasAnyNew2) {
+        setPageSize((s) => Math.min(100, s + 10));
+      }
+    }
+  };
 
   const filteredPosts = useMemo(() => {
     const safeData = feedData ?? ([] as any);
@@ -119,14 +186,18 @@ const CooperativeFeedScreen = () => {
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
           <RefreshControl
-            refreshing={isFetching}
+            refreshing={isFetching && !isFetchingNextPage}
             onRefresh={refetch}
             tintColor="#10b981"
           />
         }
+        onEndReached={() => {
+          loadMoreSafely();
+        }}
+        onEndReachedThreshold={0.4}
         ListHeaderComponent={
           <VStack className="mb-6">
-            <Box className="bg-emerald-500 pt-14 pb-24 px-6 rounded-b-[45px]">
+            <Box className="flex-row bg-primary pt-12 pb-24 px-6 rounded-b-[30px]">
               <TouchableOpacity className="mb-4 w-10" onPress={navigateBack}>
                 <ArrowLeft color="white" size={28} />
               </TouchableOpacity>
@@ -136,7 +207,7 @@ const CooperativeFeedScreen = () => {
                   {currentCoop.cooperativeName}
                 </Text>
 
-                <Text color="white" className="opacity-90 text-sm italic">
+                <Text color="white" className="opacity-90 text-md italic">
                   {currentCoop.address || "Khu vực thành viên nội bộ"}
                 </Text>
               </View>
@@ -160,8 +231,8 @@ const CooperativeFeedScreen = () => {
               />
             </HStack>
 
-            <HStack className="flex-row px-5 mb-4 items-center justify-between">
-              <Text className="font-bold text-gray-800 text-xl">
+            <HStack className="px-5 mb-4">
+              <Text className="font-bold text-gray-800 text-lg mb-6">
                 Tin tức & Vận hành
               </Text>
 
@@ -181,6 +252,30 @@ const CooperativeFeedScreen = () => {
               Chưa có bài viết nào
             </Text>
           )
+        }
+        ListFooterComponent={
+          <View className="pb-10">
+            {isFetchingNextPage ? (
+              <View className="items-center justify-center mt-6">
+                <ActivityIndicator color="#10b981" size="small" />
+                <Text className="text-gray-500 mt-3">Dang tai them...</Text>
+              </View>
+            ) : hasNextPage ? (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={loadMoreSafely}
+                className="mx-4 mt-6 bg-white border border-gray-200 rounded-2xl p-4 items-center shadow-sm"
+              >
+                <Text className="font-bold text-gray-700">
+                  Tải thêm bài viết
+                </Text>
+              </TouchableOpacity>
+            ) : filteredPosts.length > 0 ? (
+              <Text className="text-center text-gray-400 mt-8">
+                Hết bài viết rồi nha...
+              </Text>
+            ) : null}
+          </View>
         }
       />
     </Box>

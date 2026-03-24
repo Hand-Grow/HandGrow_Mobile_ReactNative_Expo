@@ -5,23 +5,87 @@ import type {
   CommitmentRequest,
   CommitmentDTO,
   FeedType,
+  PageResponse,
 } from "@/src/type/forumFeed.type";
 import apiClient from "./apiClient";
+
+const normalizePageResponse = <T>(
+  payload: any,
+  requestedPage: number,
+  requestedSize: number,
+): PageResponse<T> => {
+  if (!payload) {
+    return {
+      content: [],
+      number: requestedPage,
+      size: requestedSize,
+      last: true,
+    };
+  }
+
+  if (Array.isArray(payload)) {
+    return {
+      content: payload,
+      number: requestedPage,
+      size: requestedSize,
+      last: payload.length < requestedSize,
+    };
+  }
+
+  const unwrapped = payload?.data ?? payload;
+
+  if (Array.isArray(unwrapped)) {
+    return {
+      content: unwrapped,
+      number: requestedPage,
+      size: requestedSize,
+      last: unwrapped.length < requestedSize,
+    };
+  }
+
+  if (Array.isArray(unwrapped?.content)) {
+    return {
+      ...unwrapped,
+      number:
+        unwrapped?.number ?? unwrapped?.pageable?.pageNumber ?? requestedPage,
+      size: unwrapped?.size ?? unwrapped?.pageable?.pageSize ?? requestedSize,
+    };
+  }
+
+  const items =
+    (Array.isArray(unwrapped?.items) ? unwrapped.items : undefined) ??
+    (Array.isArray(unwrapped?.results) ? unwrapped.results : undefined);
+
+  if (items) {
+    return {
+      content: items,
+      number: requestedPage,
+      size: requestedSize,
+      last: items.length < requestedSize,
+      totalElements: unwrapped?.totalElements ?? unwrapped?.total ?? undefined,
+      totalPages: unwrapped?.totalPages ?? unwrapped?.pages ?? undefined,
+    };
+  }
+
+  return {
+    content: [],
+    number: requestedPage,
+    size: requestedSize,
+    last: true,
+  };
+};
 
 export const getForumFeed = async (
   coopId: string,
   page: number = 0,
   size: number = 10,
   sort: string = "createdAt,desc",
-): Promise<FeedItemDTO> => {
-  const { data } = await apiClient.get<FeedItemDTO>(
-    FORUM_FEED_API.GET_FEED(coopId),
-    {
-      params: { page, size, sort },
-    },
-  );
-  console.log("🔍 FULL API RESPONSE for Forum Feed:", data); // LOG DÒNG NÀY
-  return data;
+  type?: FeedType,
+): Promise<PageResponse<FeedItemDTO>> => {
+  const { data } = await apiClient.get<any>(FORUM_FEED_API.GET_FEED(coopId), {
+    params: { page, size, sort, type },
+  });
+  return normalizePageResponse<FeedItemDTO>(data, page, size);
 };
 
 export const toggleFeedLike = async (
@@ -29,7 +93,6 @@ export const toggleFeedLike = async (
   id: string,
 ): Promise<{ liked: boolean; like_count: number }> => {
   const { data } = await apiClient.post(FORUM_FEED_API.TOGGLE_LIKE(type, id));
-  console.log("🔍 FULL API RESPONSE for Toggle Like:", data); // LOG DÒNG NÀY
   return data;
 };
 
@@ -86,6 +149,6 @@ export const getCampaignCommitments = async (
       params: { page, size, sort },
     },
   );
-  console.log("🔍 FULL API RESPONSE for Campaign Commitments:", data); // LOG DÒNG NÀY
+  console.log("Fetched commitments:", data);
   return data;
 };

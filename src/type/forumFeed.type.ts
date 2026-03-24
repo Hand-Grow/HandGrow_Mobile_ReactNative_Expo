@@ -10,20 +10,21 @@ export interface FeedItemDTO {
   likeCount: number;
   commentCount: number;
   liked: boolean;
+  attachments?: string[];
 }
 
-// export interface PageResponse<T> {
-//   plotName(plotName: any): unknown;
-//   committedQuantity(committedQuantity: any): import("react").SetStateAction<string>;
-//   content: T[];
-//   totalElements: number;
-//   totalPages: number;
-//   last: boolean;
-//   pageable: {
-//     pageNumber: number;
-//     pageSize: number;
-//   };
-// }
+export interface PageResponse<T> {
+  content: T[];
+  totalElements?: number;
+  totalPages?: number;
+  last?: boolean;
+  number?: number; // Some backends return `number` for current page.
+  size?: number;
+  pageable?: {
+    pageNumber: number;
+    pageSize: number;
+  };
+}
 
 export interface CommentDTO {
   id: string;

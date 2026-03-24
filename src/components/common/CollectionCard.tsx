@@ -1,22 +1,24 @@
+import { useCampaignCommitments } from "@/src/hook/useForumFeed";
+import { createCampaignCommitment } from "@/src/services/forumFeed.api";
+import { plotApi } from "@/src/services/plot.api";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Box, Divider, HStack, Text, VStack } from "@gluestack-ui/themed";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
-import { FeedActions } from "./FeedActions";
-import { plotApi } from "@/src/services/plot.api";
-import { createCampaignCommitment } from "@/src/services/forumFeed.api";
-import { useCampaignCommitments } from "@/src/hook/useForumFeed";
-import { useQueryClient } from "@tanstack/react-query";
 import { AppImage } from "./AppImage";
+import { FeedActions } from "./FeedActions";
 import { UserIcon } from "lucide-react-native";
 import { timeAgo } from "@/src/util/timeAgo";
 import { useMyJoinRequests } from "@/src/hook/useMyJoinRequests";
+import { FeedImageGrid } from "./FeedGrid";
 
 export const CollectionCard = ({ item }: any) => {
   const queryClient = useQueryClient();
@@ -31,6 +33,9 @@ export const CollectionCard = ({ item }: any) => {
   const [quantity, setQuantity] = useState("");
   const [showFieldList, setShowFieldList] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [startIndex, setStartIndex] = useState(0);
 
   const { data: commitmentsData } = useCampaignCommitments(item.id);
 
@@ -84,12 +89,29 @@ export const CollectionCard = ({ item }: any) => {
       return;
     }
 
+    const quantityNumber = Number(quantity);
+
+    if (isNaN(quantityNumber)) {
+      alert("Vui lòng nhập số");
+      return;
+    }
+
+    if (quantityNumber <= 0) {
+      alert("Vui lòng nhập số lớn hơn 0");
+      return;
+    }
+
+    if (quantity !== quantityNumber.toString()) {
+      alert("Vui lòng nhập số");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
       await createCampaignCommitment(item.id, {
         plotId: selectedField,
-        committedQuantity: Number(quantity),
+        committedQuantity: quantityNumber,
       });
 
       queryClient.invalidateQueries({
@@ -107,11 +129,10 @@ export const CollectionCard = ({ item }: any) => {
   return (
     <Box className="bg-white p-5 mb-4 rounded-3xl border border-amber-100 shadow-sm relative overflow-hidden">
       <Box className="absolute top-0 right-0 bg-amber-500 px-3 py-1 rounded-bl-2xl">
-        <Text className="text-md text-white font-bold uppercase">
+        <Text className="text-sm text-white font-bold uppercase">
           Đợt thu gom
         </Text>
       </Box>
-
       <HStack className="flex-row mb-4 mt-2">
         <View className="w-14 h-14 bg-orange-100 rounded-full items-center justify-center border border-orange-200">
           {item?.avatarUrl ? (
@@ -134,8 +155,6 @@ export const CollectionCard = ({ item }: any) => {
           </Text>
         </VStack>
       </HStack>
-
-      {/* CONTENT */}
       <View className="mt-2 mb-2">
         <Text className="mb-2 text-gray-800 font-medium text-lg leading-6">
           Sản phẩm thu: {item.title}
@@ -156,7 +175,6 @@ export const CollectionCard = ({ item }: any) => {
           )}
         </TouchableOpacity>
       </View>
-
       <TouchableOpacity
         onPress={openReportModal}
         className={`py-1.5 rounded-xl items-center shadow-sm mb-3 w-[200px] ${
@@ -173,12 +191,16 @@ export const CollectionCard = ({ item }: any) => {
             : "Báo cáo sản lượng của tôi"}
         </Text>
       </TouchableOpacity>
-
+      <FeedImageGrid
+        images={item.attachments}
+        onPressImage={(index) => {
+          setGalleryImages(item.attachments);
+          setStartIndex(index);
+          setShowGallery(true);
+        }}
+      />
       <Divider className="bg-gray-50 mb-3" />
-
       <FeedActions item={item} type="CAMPAIGN" />
-
-      {/* MODAL */}
       <Modal visible={isReportModalVisible} animationType="fade" transparent>
         <View className="flex-1 bg-black/50 justify-center items-center px-4">
           <View className="bg-white w-full rounded-2xl p-6 shadow-lg">
@@ -199,7 +221,7 @@ export const CollectionCard = ({ item }: any) => {
                 </Text>
 
                 <Text className="text-xl">
-                  Sản lượng: {commitment.quantity} kg
+                  Sản lượng: {Number(commitment.quantity).toLocaleString()} kg
                 </Text>
               </View>
             ) : (

@@ -1,6 +1,11 @@
 // hooks/useForumFeed.ts
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   getForumFeed,
   toggleFeedLike,
@@ -10,6 +15,7 @@ import {
   getCampaignCommitments,
 } from "@/src/services/forumFeed.api";
 import { FeedType } from "@/src/type/forumFeed.type";
+import { useUserStore } from "../store/user.store";
 
 export const useForumFeed = (
   coopId: string,
@@ -17,10 +23,33 @@ export const useForumFeed = (
   size = 10,
   sort = "createdAt,desc",
 ) => {
-  return useQuery({
-    queryKey: ["forum-feed", coopId, page, sort],
-    queryFn: () => getForumFeed(coopId, page, size, sort),
+  return useInfiniteQuery({
+    queryKey: ["forum-feed", coopId, page, size, sort],
+    queryFn: ({ pageParam }) => {
+      const currentPage = typeof pageParam === "number" ? pageParam : page;
+      return getForumFeed(coopId, currentPage, size, sort);
+    },
+    initialPageParam: page,
+    getNextPageParam: (lastPage) => {
+      const pageNumber =
+        lastPage?.pageable?.pageNumber ?? lastPage?.number ?? 0;
+
+      if (lastPage?.last === true) return undefined;
+
+      if (typeof lastPage?.totalPages === "number") {
+        const next = pageNumber + 1;
+        return next >= lastPage.totalPages ? undefined : next;
+      }
+
+      const contentLength = Array.isArray(lastPage?.content)
+        ? lastPage.content.length
+        : 0;
+      if (contentLength < size) return undefined;
+
+      return pageNumber + 1;
+    },
     enabled: !!coopId,
+    placeholderData: (prev) => prev,
   });
 };
 
@@ -29,39 +58,66 @@ export const useToggleLike = () => {
 
   return useMutation({
     mutationFn: ({ type, id }: { type: FeedType; id: string }) => {
-      console.log("CALL LIKE API", type, id);
       return toggleFeedLike(type, id);
     },
 
     onMutate: async ({ id }) => {
       await queryClient.cancelQueries({ queryKey: ["forum-feed"] });
 
-      const previousData = queryClient.getQueryData(["forum-feed"]);
-
-      queryClient.setQueryData(["forum-feed"], (old: any) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          data: old.data?.map((item: any) => {
-            if (item.id !== id) return item;
-
-            const newLiked = !item.liked;
-
-            return {
-              ...item,
-              liked: newLiked,
-              likeCount: newLiked ? item.likeCount + 1 : item.likeCount - 1,
-            };
-          }),
-        };
+      const previousQueries = queryClient.getQueriesData({
+        queryKey: ["forum-feed"],
       });
 
-      return { previousData };
+      queryClient.setQueriesData({ queryKey: ["forum-feed"] }, (old: any) => {
+        if (!old) return old;
+
+        const updateItem = (item: any) => {
+          if (item?.id !== id) return item;
+
+          const newLiked = !item.liked;
+
+          return {
+            ...item,
+            liked: newLiked,
+            likeCount: newLiked ? item.likeCount + 1 : item.likeCount - 1,
+          };
+        };
+
+        if (Array.isArray(old?.pages)) {
+          return {
+            ...old,
+            pages: old.pages.map((p: any) => ({
+              ...p,
+              content: Array.isArray(p?.content)
+                ? p.content.map(updateItem)
+                : p,
+            })),
+          };
+        }
+
+        if (Array.isArray(old?.content)) {
+          return { ...old, content: old.content.map(updateItem) };
+        }
+
+        if (Array.isArray(old)) {
+          return old.map(updateItem);
+        }
+
+        if (Array.isArray(old?.data)) {
+          return { ...old, data: old.data.map(updateItem) };
+        }
+
+        return old;
+      });
+
+      return { previousQueries };
     },
 
     onError: (err, variables, context) => {
-      queryClient.setQueryData(["forum-feed"], context?.previousData);
+      if (!context?.previousQueries) return;
+      for (const [key, data] of context.previousQueries) {
+        queryClient.setQueryData(key, data);
+      }
     },
 
     onSettled: () => {
@@ -106,29 +162,36 @@ export const usePostComment = () => {
       queryClient.setQueriesData({ queryKey: ["forum-feed"] }, (old: any) => {
         if (!old) return old;
 
-        if (old.data) {
+        const bumpCommentCount = (feed: any) =>
+          feed?.id === variables.id
+            ? {
+                ...feed,
+                commentCount: (feed.commentCount || 0) + 1,
+              }
+            : feed;
+
+        if (Array.isArray(old?.pages)) {
           return {
             ...old,
-            data: old.data.map((feed: any) =>
-              feed.id === variables.id
-                ? {
-                    ...feed,
-                    commentCount: (feed.commentCount || 0) + 1,
-                  }
-                : feed,
-            ),
+            pages: old.pages.map((p: any) => ({
+              ...p,
+              content: Array.isArray(p?.content)
+                ? p.content.map(bumpCommentCount)
+                : p?.content,
+            })),
           };
         }
 
+        if (Array.isArray(old?.content)) {
+          return { ...old, content: old.content.map(bumpCommentCount) };
+        }
+
+        if (Array.isArray(old?.data)) {
+          return { ...old, data: old.data.map(bumpCommentCount) };
+        }
+
         if (Array.isArray(old)) {
-          return old.map((feed: any) =>
-            feed.id === variables.id
-              ? {
-                  ...feed,
-                  commentCount: (feed.commentCount || 0) + 1,
-                }
-              : feed,
-          );
+          return old.map(bumpCommentCount);
         }
 
         return old;
@@ -155,10 +218,11 @@ export const useCampaignCommitments = (
   size = 10,
   sort = "createdAt,desc",
 ) => {
+  const userId = useUserStore((state) => state.user?.id);
   return useQuery({
-    queryKey: ["campaign-commitments", campaignId, page, size, sort],
+    queryKey: ["campaign-commitments", campaignId, userId, page, size, sort],
     queryFn: () => getCampaignCommitments(campaignId, page, size, sort),
-    enabled: !!campaignId,
+    enabled: !!campaignId && !!userId,
     select: (data) => data,
   });
 };

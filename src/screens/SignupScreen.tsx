@@ -1,4 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowLeft } from "lucide-react-native";
 import { useForm } from "react-hook-form";
 import {
@@ -10,12 +12,10 @@ import {
 } from "react-native";
 import { AppImage } from "../components/common/AppImage";
 import SignupForm from "../components/common/SignupForm";
-import { signupSchema, SignupSchema } from "../schemas/auth.schema";
-import { handleApiError } from "../util/apiError";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { signupSchema, SignupSchema } from "../schemas/auth.schema";
 import { signup } from "../services/auth.api";
+import { handleApiError } from "../util/apiError";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -45,8 +45,15 @@ export default function SignupScreen() {
         produce: data.produce ?? "OTHER",
       });
       navigation.replace("Login");
-    } catch (error) {
-      handleApiError(error);
+    } catch (error: any) {
+      if (error?.response?.status === 500) {
+        form.setError("username", {
+          type: "manual",
+          message: "Email này đã được đăng ký. Vui lòng sử dụng email khác.",
+        });
+      } else {
+        handleApiError(error);
+      }
     }
   };
 

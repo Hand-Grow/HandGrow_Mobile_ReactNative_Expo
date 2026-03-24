@@ -7,9 +7,10 @@ export interface GroupBuyCampaign {
   productImageUrl?: string;
   title: string;
   description: string;
-  status: "GATHERING" | "CLOSED";
+  status: "GATHERING" | "CLOSED" | "COMPLETED";
   deadlineDate: string;
   totalCommittedQty: number;
+  targetQuantity: number;
   currentUnitPrice: number;
   participationCount: number;
   progressPercent: number;

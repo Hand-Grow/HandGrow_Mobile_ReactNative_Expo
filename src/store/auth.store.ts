@@ -51,6 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     useUserStore.getState().reset(); // 🔥 reset user store
     queryClient.clear();
+
     set({
       isAuthenticated: false,
       isBootstrapping: false,

@@ -1,11 +1,10 @@
-import apiClient from "./apiClient";
-import { User } from "../type/auth.type";
 import { USER_API } from "../constants";
+import { User } from "../type/auth.type";
+import apiClient from "./apiClient";
 
 export const getUserProfile = async (): Promise<User> => {
   try {
     const response = await apiClient.get(USER_API.GET_PROFILE);
-    console.log("🔍 FULL API RESPONSE for User Profile:", response.data); // LOG DÒNG NÀY
     return response.data;
   } catch (error) {
     console.error("Lỗi lấy Profile:", error);
