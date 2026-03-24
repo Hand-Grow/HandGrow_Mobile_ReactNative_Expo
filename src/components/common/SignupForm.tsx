@@ -50,7 +50,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
                 </InputSlot>
                 <InputField
                   placeholder="Nhập tên người dùng"
-                  className="text-xl"
+                  className="text-base"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -70,7 +70,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
                 </InputSlot>
                 <InputField
                   placeholder="Nhập email của bạn"
-                  className="text-xl"
+                  className="text-base"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -90,7 +90,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
                 </InputSlot>
                 <InputField
                   placeholder="Nhập số điện thoại"
-                  className="text-xl"
+                  className="text-base"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -111,7 +111,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
                 <InputField
                   placeholder="Nhập mật khẩu"
                   secureTextEntry={!showPassword}
-                  className="text-xl"
+                  className="text-base"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -144,7 +144,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
                 <InputField
                   placeholder="Xác nhận mật khẩu"
                   secureTextEntry={!showPassword}
-                  className="text-xl"
+                  className="text-base"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -173,7 +173,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
             <View>
               <ProduceSelect selectedValue={value} onValueChange={onChange} />
               {error && (
-                <Text className="text-red-500 text-xl mt-1">
+                <Text className="text-red-500 text-base mt-1">
                   {error.message}
                 </Text>
               )}
@@ -203,7 +203,7 @@ export default function SignupForm({ form, onSubmit }: Props) {
           onPress={form.handleSubmit(onSubmit)}
           disabled={form.formState.isSubmitting}
         >
-          <ButtonText className="text-white text-xl font-bold">
+          <ButtonText className="text-white text-base font-bold">
             {form.formState.isSubmitting ? "Đang đăng ký..." : "Đăng Ký"}
           </ButtonText>
         </Button>

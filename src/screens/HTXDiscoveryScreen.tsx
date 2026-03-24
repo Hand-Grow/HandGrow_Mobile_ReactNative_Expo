@@ -259,7 +259,7 @@ const HTXDiscoveryScreen = () => {
           </View>
         </View>
 
-        <View className="px-5 py-3 flex-col">
+        <HStack className="px-5 py-3 flex-col">
           <Text className="text-gray-500 font-medium">
             Tìm thấy {filteredHTXs.length} HTX
           </Text>
@@ -268,7 +268,7 @@ const HTXDiscoveryScreen = () => {
             onFilterChange={setActiveFilters}
             selectedValues={activeFilters}
           />
-        </View>
+        </HStack>
 
         <View className="p-1">
           {isFetchingHtx ? (

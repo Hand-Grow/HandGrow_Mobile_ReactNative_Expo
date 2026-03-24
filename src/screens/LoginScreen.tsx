@@ -78,14 +78,17 @@ export default function LoginScreen() {
 
           <View className="pb-6 items-center">
             <View className="flex-row">
-              <Text className="text-xl text-gray-500">
+              <Text className="text-base text-gray-500">
                 Bạn chưa có tài khoản?
               </Text>
               <Pressable
                 hitSlop={6}
                 onPress={() => navigation.navigate("SignUp")}
               >
-                <Text className="text-xl font-semibold text-info">Đăng ký</Text>
+                <Text className="text-base font-semibold text-info">
+                  {" "}
+                  Đăng ký
+                </Text>
               </Pressable>
             </View>
           </View>
