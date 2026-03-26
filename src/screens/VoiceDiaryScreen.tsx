@@ -21,6 +21,28 @@ import {
 } from "../type/voiceDiary.type";
 import { RootStackParamList } from "../navigation/AppNavigator";
 
+const toActivityDateMs = (activityDate?: string) => {
+  if (!activityDate) return 0;
+
+  const nativeMs = Date.parse(activityDate);
+  if (!Number.isNaN(nativeMs)) return nativeMs;
+
+  const parsed = dayjs(activityDate);
+  return parsed.isValid() ? parsed.valueOf() : 0;
+};
+
+const compareDiaryByActivityDateDesc = (a: DiaryResponse, b: DiaryResponse) => {
+  const byMs =
+    toActivityDateMs(b.activityDate) - toActivityDateMs(a.activityDate);
+  if (byMs !== 0) return byMs;
+
+  // ISO strings will sort correctly here; this also handles any unparseable values.
+  const byRaw = (b.activityDate || "").localeCompare(a.activityDate || "");
+  if (byRaw !== 0) return byRaw;
+
+  return (b.id || "").localeCompare(a.id || "");
+};
+
 export default function VoiceDiaryScreen() {
   const navigation = useNavigation();
 
@@ -59,7 +81,8 @@ export default function VoiceDiaryScreen() {
         startDate,
         endDate,
       );
-      setDiaries(data);
+      const sorted = [...data].sort(compareDiaryByActivityDateDesc);
+      setDiaries(sorted);
     } catch (error) {
       console.log("Error fetching diaries:", error);
     } finally {
