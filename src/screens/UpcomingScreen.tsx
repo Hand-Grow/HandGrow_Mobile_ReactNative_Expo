@@ -74,7 +74,7 @@ export default function UpcomingScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<UpcomingRouteProp>();
 
-  const featureKey: FeatureKey = route.params?.feature ?? "generic";
+  const featureKey: FeatureKey = route.params?.feature;
 
   const screen = useMemo(() => {
     const baseItems: FeatureItem[] = [

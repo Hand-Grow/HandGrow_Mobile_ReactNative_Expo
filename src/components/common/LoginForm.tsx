@@ -38,7 +38,7 @@ export default function LoginForm({ form, onSubmit }: Props) {
                 </InputSlot>
                 <InputField
                   placeholder="Tên đăng nhập bằng email đã đăng ký"
-                  className="text-base"
+                  className="text-lg"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -60,7 +60,7 @@ export default function LoginForm({ form, onSubmit }: Props) {
                 <InputField
                   placeholder="Mật khẩu"
                   secureTextEntry={!showPassword}
-                  className="text-base"
+                  className="text-lg"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -83,7 +83,7 @@ export default function LoginForm({ form, onSubmit }: Props) {
         />
 
         <Pressable hitSlop={8}>
-          <Text className="text-right text-base text-gray-500">
+          <Text className="text-right text-lg text-gray-500">
             Quên mật khẩu?
           </Text>
         </Pressable>
@@ -94,11 +94,11 @@ export default function LoginForm({ form, onSubmit }: Props) {
           onPress={form.handleSubmit(onSubmit)}
         >
           {isSubmitting ? (
-            <ButtonText className="text-white text-base font-bold">
+            <ButtonText className="text-white text-lg font-bold">
               Đang đăng nhập...
             </ButtonText>
           ) : (
-            <ButtonText className="text-white text-base font-bold">
+            <ButtonText className="text-white text-lg font-bold">
               Tiếp tục
             </ButtonText>
           )}
@@ -111,7 +111,7 @@ export default function LoginForm({ form, onSubmit }: Props) {
               className="w-6 h-6"
               resizeMode="contain"
             />
-            <ButtonText className="text-base text-white font-bold">
+            <ButtonText className="text-lg text-white font-bold">
               Tiếp tục bằng Google
             </ButtonText>
           </View>

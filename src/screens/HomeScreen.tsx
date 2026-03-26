@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { ScrollView, SafeAreaView, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  View,
+  Alert,
+} from "react-native";
 import { VStack, HStack, Text } from "@gluestack-ui/themed";
 import {
   Camera,
@@ -97,19 +103,18 @@ export default function HomeScreen() {
             color="#FFFF"
             bg="#32c08a"
             onPress={() => navigation.navigate("Upcoming", { feature: "scan" })}
+            comingSoon={true}
           />
           <MenuCard
             icon={User}
             label="Cá nhân"
             color="#FFFF"
             bg="#846b65"
-            onPress={() =>
-              navigation.navigate("Upcoming", { feature: "profile" })
-            }
+            onPress={() => navigation.navigate("Profile")}
           />
         </View>
         <LinearGradient
-          colors={["#38BDF8", "#2563EB"]}
+          colors={["#33c0f3", "#1c61f7"]}
           style={{ borderRadius: 10, padding: 24, marginBottom: 20 }}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -160,30 +165,65 @@ export default function HomeScreen() {
 }
 
 interface MenuCardProps {
-  icon: any;
+  icon: React.ElementType;
   label: string;
   color: string;
   bg: string;
-  onPress: () => void;
+  onPress?: () => void;
+  comingSoon?: boolean;
 }
 
-const MenuCard = ({ icon: Icon, label, color, bg, onPress }: MenuCardProps) => (
-  <TouchableOpacity
-    activeOpacity={0.7}
-    onPress={onPress}
-    className="bg-white p-5 rounded-[28px] shadow-sm border border-gray-50 mb-4 w-[48%] flex-col justify-center items-center"
-  >
-    <View
-      style={{ backgroundColor: bg }}
-      className="w-12 h-12 rounded-2xl items-center justify-center mb-4"
+const MenuCard = ({
+  icon: Icon,
+  label,
+  color,
+  bg,
+  onPress,
+  comingSoon = false,
+}: MenuCardProps) => {
+  const handlePress = () => {
+    if (comingSoon) {
+      Alert.alert(
+        "Thông báo",
+        "Tính năng đang được phát triển, sẽ sớm ra mắt!",
+      );
+      return;
+    }
+    onPress?.();
+  };
+
+  const iconBgColor = comingSoon ? "#cccccc" : bg;
+  const iconColor = comingSoon ? "#ffffff" : color;
+
+  return (
+    <TouchableOpacity
+      activeOpacity={comingSoon ? 0.9 : 0.7}
+      onPress={handlePress}
+      className={`bg-white p-5 rounded-[28px] shadow-sm border border-gray-50 mb-4 w-[48%] flex-col justify-center items-center ${
+        comingSoon ? "opacity-80" : ""
+      }`}
     >
-      <Icon size={24} color={color} />
-    </View>
-    <Text className="font-bold text-slate-800 text-md text-center">
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
+      <View
+        style={{ backgroundColor: iconBgColor }}
+        className="w-12 h-12 rounded-2xl items-center justify-center mb-4 relative"
+      >
+        <Icon size={24} color={iconColor} />
+        {comingSoon && (
+          <View className="absolute -top-2 -right-2 bg-orange-500 rounded-full px-2 py-0.5">
+            <Text className="text-white text-[10px] font-bold">Sắp ra mắt</Text>
+          </View>
+        )}
+      </View>
+      <Text
+        className={`font-bold text-md text-center ${
+          comingSoon ? "text-gray-400" : "text-slate-800"
+        }`}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 const ActivityItem = ({ title, distance, members, imageUri }: any) => (
   <TouchableOpacity
